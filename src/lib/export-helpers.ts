@@ -87,8 +87,8 @@ export function exportSingleReportToPdf(report: DailyReport) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Cabeçalho estilizado
-  doc.setFillColor(30, 58, 138); // Azul escuro brand
+  // Cabeçalho estilizado padrão Bradesco
+  doc.setFillColor(181, 7, 41); // Vermelho escuro Bradesco
   doc.rect(0, 0, pageWidth, 30, 'F');
 
   doc.setTextColor(255, 255, 255);
@@ -159,8 +159,8 @@ export function exportSingleReportToPdf(report: DailyReport) {
     startY: currentY,
     head: [['Aluno', 'Status', 'Motivo da Falta / Atraso']],
     body: attendanceRows,
-    headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
+    headStyles: { fillColor: [204, 9, 47], textColor: [255, 255, 255] },
+    alternateRowStyles: { fillColor: [250, 245, 245] },
     margin: { left: 14, right: 14 },
   });
 
@@ -188,8 +188,8 @@ export function exportSingleReportToPdf(report: DailyReport) {
     startY: currentY,
     head: [['Aluno', 'Conceito', 'Nota', 'Justificativa / Observação']],
     body: performanceRows,
-    headStyles: { fillColor: [30, 64, 175], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
+    headStyles: { fillColor: [181, 7, 41], textColor: [255, 255, 255] },
+    alternateRowStyles: { fillColor: [250, 245, 245] },
     margin: { left: 14, right: 14 },
     styles: { cellWidth: 'auto', overflow: 'linebreak' },
     columnStyles: {

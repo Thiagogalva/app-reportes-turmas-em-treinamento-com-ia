@@ -160,9 +160,9 @@ Instrutor / Treinador Responsável
 
   const bodyHtml = `
 <div style="font-family: Arial, sans-serif; color: #1e293b; max-width: 680px; margin: 0 auto; line-height: 1.6; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-  <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 24px; text-align: left;">
+  <div style="background: linear-gradient(135deg, #780318, #cc092f); color: white; padding: 24px; text-align: left;">
     <h2 style="margin: 0 0 6px 0; font-size: 20px;">Reporte Diário de Treinamento</h2>
-    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Turma: <strong>${report.className}</strong> | Data: <strong>${formatDate(report.date)}</strong></p>
+    <p style="margin: 0; opacity: 0.95; font-size: 14px;">Turma: <strong>${report.className}</strong> | Data: <strong>${formatDate(report.date)}</strong></p>
   </div>
   
   <div style="padding: 24px;">

@@ -4,13 +4,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   History,
   Search,
-  Filter,
   Download,
   FileSpreadsheet,
-  Calendar,
   Sparkles,
   AlertTriangle,
-  CheckCircle2,
   Trash2,
   Eye,
   X,
@@ -138,41 +135,41 @@ export default function HistoricoPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Top Banner */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 shadow-xl border border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-bradesco-900/40 text-bradesco-400 border border-bradesco-600/40">
             Arquivo Completo
           </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1.5">
             Histórico Geral de Reportes
           </h1>
-          <p className="text-xs text-slate-500">
-            Consulte todos os lançamentos de treinamentos passados, filtre ocorrências e exporte relatórios consolidados.
+          <p className="text-xs text-dark-muted">
+            Consulte todos os lançamentos passados, filtre ocorrências e exporte relatórios consolidados.
           </p>
         </div>
 
         <button
           onClick={() => exportReportsToExcel(filteredReports)}
           disabled={filteredReports.length === 0}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-dark-card hover:bg-dark-border text-white text-xs font-bold border border-dark-border shadow-sm transition-all disabled:opacity-40 self-start sm:self-auto"
         >
-          <FileSpreadsheet className="w-4 h-4" />
+          <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
           <span>Exportar Filtrados (Excel)</span>
         </button>
       </div>
 
       {/* Painel de Filtros e Busca */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+      <div className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Busca por texto */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-dark-muted absolute left-3 top-3" />
             <input
               type="text"
               placeholder="Buscar por turma, conteúdo ou aluno..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50"
+              className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-dark-border focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input text-white"
             />
           </div>
 
@@ -181,7 +178,7 @@ export default function HistoricoPage() {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full text-xs font-semibold text-slate-800 border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50"
+              className="w-full text-xs font-bold text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
             >
               <option value="ALL">Todas as Turmas (Ativas e Concluídas)</option>
               {classes.map(c => (
@@ -193,15 +190,15 @@ export default function HistoricoPage() {
           </div>
 
           {/* Checkboxes de Filtros Especiais */}
-          <div className="flex items-center gap-4 text-xs font-semibold text-slate-700 pt-1">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-bold text-dark-muted pt-1">
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={filterOnlyLowPerformers}
                 onChange={(e) => setFilterOnlyLowPerformers(e.target.checked)}
-                className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                className="rounded border-dark-border bg-dark-input text-bradesco-600 focus:ring-bradesco-500"
               />
-              <span className="text-rose-700">Apenas c/ Baixo Desempenho</span>
+              <span className="text-bradesco-400">Apenas c/ Baixo Desempenho</span>
             </label>
 
             <label className="flex items-center gap-1.5 cursor-pointer">
@@ -209,9 +206,9 @@ export default function HistoricoPage() {
                 type="checkbox"
                 checked={filterOnlySystemIssues}
                 onChange={(e) => setFilterOnlySystemIssues(e.target.checked)}
-                className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                className="rounded border-dark-border bg-dark-input text-amber-500 focus:ring-amber-500"
               />
-              <span className="text-amber-800">Falhas nos Sistemas</span>
+              <span className="text-amber-400">Falhas nos Sistemas</span>
             </label>
           </div>
         </div>
@@ -229,41 +226,41 @@ export default function HistoricoPage() {
             return (
               <div
                 key={rep.id}
-                className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:border-blue-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm hover:border-bradesco-600/50 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div className="space-y-1.5 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    <span className="text-xs font-black text-white bg-dark-card border border-dark-border px-2.5 py-1 rounded-lg">
                       {rep.date}
                     </span>
-                    <strong className="text-sm text-slate-900 font-bold">
+                    <strong className="text-sm text-white font-bold">
                       {rep.className}
                     </strong>
-                    <span className="text-xs text-slate-400">|</span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-dark-muted hidden sm:inline">|</span>
+                    <span className="text-xs text-dark-muted">
                       Instrutor: {rep.instructorName}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-1">
-                    <strong>Conteúdo:</strong> {rep.topicsStudied}
+                  <p className="text-xs text-dark-muted line-clamp-1">
+                    <strong className="text-slate-300">Conteúdo:</strong> {rep.topicsStudied}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
-                    <span className={`font-semibold ${rate >= 85 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    <span className={`font-bold ${rate >= 85 ? 'text-emerald-400' : 'text-amber-400'}`}>
                       ● Presença: {rate}% ({present}/{total})
                     </span>
 
                     <span>
                       {rep.systemsStatus.operational ? (
-                        <span className="text-emerald-700 font-semibold">● Sistemas: OK</span>
+                        <span className="text-emerald-400 font-bold">● Sistemas: OK</span>
                       ) : (
-                        <span className="text-rose-700 font-bold">● Sistemas: Falhas reportadas</span>
+                        <span className="text-bradesco-400 font-bold">● Sistemas: Falhas reportadas</span>
                       )}
                     </span>
 
                     {lowCount > 0 && (
-                      <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-bradesco-950 text-bradesco-300 font-bold text-[10px] border border-bradesco-800/40">
                         ⚠️ {lowCount} aluno(s) abaixo do esperado
                       </span>
                     )}
@@ -274,7 +271,7 @@ export default function HistoricoPage() {
                 <div className="flex items-center gap-2 self-end md:self-center">
                   <button
                     onClick={() => setViewingReport(rep)}
-                    className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors text-xs font-semibold flex items-center gap-1"
+                    className="p-2 rounded-xl text-dark-muted hover:text-white hover:bg-dark-card border border-dark-border transition-colors text-xs font-semibold flex items-center gap-1"
                     title="Ver detalhes completos do reporte"
                   >
                     <Eye className="w-4 h-4" />
@@ -283,15 +280,15 @@ export default function HistoricoPage() {
 
                   <button
                     onClick={() => handleOpenAiForReport(rep)}
-                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-bradesco-600/20 hover:bg-bradesco-600 text-bradesco-400 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-bradesco-500/30 transition-all"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <Sparkles className="w-3.5 h-3.5" />
                     <span>E-mail IA</span>
                   </button>
 
                   <button
                     onClick={() => exportSingleReportToPdf(rep)}
-                    className="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="p-2 rounded-xl text-dark-muted hover:text-white hover:bg-dark-card border border-dark-border transition-colors"
                     title="Baixar PDF"
                   >
                     <Download className="w-4 h-4" />
@@ -299,7 +296,7 @@ export default function HistoricoPage() {
 
                   <button
                     onClick={() => handleDeleteReport(rep.id)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    className="p-2 rounded-xl text-dark-muted hover:text-bradesco-400 hover:bg-bradesco-950/40 transition-colors"
                     title="Excluir"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -309,7 +306,7 @@ export default function HistoricoPage() {
             );
           })
         ) : (
-          <div className="bg-white rounded-2xl p-12 text-center text-slate-400 border border-slate-200">
+          <div className="bg-dark-surface rounded-2xl p-12 text-center text-dark-muted border border-dark-border text-xs">
             Nenhum reporte encontrado com os filtros selecionados.
           </div>
         )}
@@ -317,15 +314,15 @@ export default function HistoricoPage() {
 
       {/* MODAL DE DETALHES COMPLETOS DO REPORTE */}
       {viewingReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
-            <div className="p-5 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-dark-surface rounded-2xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-dark-border text-dark-text">
+            <div className="p-4 sm:p-5 border-b border-dark-border bg-gradient-to-r from-bradesco-700 via-bradesco-600 to-rose-700 text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-400" />
+                  <FileText className="w-5 h-5 text-white" />
                   Detalhes do Reporte Diário
                 </h2>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-rose-100">
                   {viewingReport.className} - {viewingReport.date}
                 </p>
               </div>
@@ -337,44 +334,44 @@ export default function HistoricoPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs">
               {/* Sistemas */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="font-bold text-slate-900 block">Sistemas dos Alunos:</span>
-                <p className="text-slate-700">
+              <div className="p-3.5 bg-dark-card rounded-xl border border-dark-border space-y-1">
+                <span className="font-bold text-white block">Sistemas dos Alunos:</span>
+                <p className="text-slate-300">
                   Status: <strong>{viewingReport.systemsStatus.operational ? '100% Operacional' : 'Com Problemas'}</strong>
                 </p>
-                <p className="text-slate-600">{viewingReport.systemsStatus.notes}</p>
+                <p className="text-dark-muted">{viewingReport.systemsStatus.notes}</p>
               </div>
 
               {/* Tópicos */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="font-bold text-slate-900 block">Conteúdo Ministrado:</span>
-                <p className="text-slate-700">{viewingReport.topicsStudied}</p>
+              <div className="p-3.5 bg-dark-card rounded-xl border border-dark-border space-y-1">
+                <span className="font-bold text-white block">Conteúdo Ministrado:</span>
+                <p className="text-slate-300">{viewingReport.topicsStudied}</p>
                 {viewingReport.practicalExercises && (
-                  <p className="text-slate-600 mt-1">Prática: {viewingReport.practicalExercises}</p>
+                  <p className="text-dark-muted mt-1">Prática: {viewingReport.practicalExercises}</p>
                 )}
               </div>
 
               {/* Desempenho e Frequência */}
               <div className="space-y-2">
-                <span className="font-bold text-slate-900 block">Desempenho dos Alunos:</span>
+                <span className="font-bold text-white block">Desempenho dos Alunos:</span>
                 <div className="space-y-1.5">
                   {viewingReport.studentPerformances.map((p, i) => (
                     <div
                       key={i}
                       className={`p-2.5 rounded-lg border flex flex-col gap-1 ${
                         p.level === 'ABAIXO_DO_ESPERADO'
-                          ? 'bg-rose-50 border-rose-200 text-rose-900'
-                          : 'bg-white border-slate-200'
+                          ? 'bg-bradesco-950/40 border-bradesco-800 text-bradesco-200'
+                          : 'bg-dark-card border-dark-border text-white'
                       }`}
                     >
                       <div className="flex items-center justify-between font-bold">
                         <span>{p.studentName}</span>
-                        <span className="text-[10px] uppercase">{p.level.replace(/_/g, ' ')}</span>
+                        <span className="text-[10px] uppercase font-black">{p.level.replace(/_/g, ' ')}</span>
                       </div>
                       {p.lowPerformanceReason && (
-                        <p className="text-[11px] text-rose-800">
+                        <p className="text-[11px] text-bradesco-300 font-medium">
                           <strong>Motivo do Baixo Desempenho:</strong> {p.lowPerformanceReason}
                         </p>
                       )}
@@ -384,17 +381,17 @@ export default function HistoricoPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-dark-border bg-dark-card flex items-center justify-end gap-2">
               <button
                 onClick={() => exportSingleReportToPdf(viewingReport)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-dark-surface hover:bg-dark-border text-white border border-dark-border flex items-center gap-1.5"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 text-bradesco-400" />
                 <span>Baixar PDF</span>
               </button>
               <button
                 onClick={() => setViewingReport(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-700"
               >
                 Fechar
               </button>

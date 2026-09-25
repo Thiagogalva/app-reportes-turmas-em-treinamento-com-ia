@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,12 +9,26 @@ import {
   Users,
   History,
   Settings,
-  Bot,
   Sparkles,
-  BookOpen
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Bot
 } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (val: boolean) => void;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (val: boolean) => void;
+}
+
+export default function Sidebar({
+  isCollapsed,
+  setIsCollapsed,
+  isMobileOpen,
+  setIsMobileOpen
+}: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -51,62 +65,121 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-white min-h-screen flex flex-col justify-between shadow-xl flex-shrink-0">
-      <div>
-        {/* Brand Header */}
-        <div className="p-6 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-base tracking-tight text-white flex items-center gap-1.5">
-                TreinaReport
-                <span className="text-[10px] bg-blue-500/20 text-blue-400 font-semibold px-1.5 py-0.5 rounded border border-blue-500/30">AI</span>
-              </h1>
-              <p className="text-xs text-slate-400">Gestão & Reporte Diário</p>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Backdrop para telas mobile */}
+      {isMobileOpen && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden transition-opacity"
+        />
+      )}
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-1.5">
-          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Navegação Principal
-          </div>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
-                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <div className="flex flex-col">
-                  <span>{item.label}</span>
+      {/* Barra Lateral / Sidebar */}
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col justify-between bg-dark-surface border-r border-dark-border text-dark-text transition-all duration-300 ease-in-out shadow-2xl lg:static ${
+          // Mobile: slide-in drawer
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${
+          // Desktop: minimizado (w-20) vs expandido (w-64)
+          isCollapsed ? 'lg:w-20' : 'lg:w-64'
+        } w-72`}
+      >
+        <div>
+          {/* Brand Header */}
+          <div className="p-4 sm:p-5 border-b border-dark-border flex items-center justify-between">
+            <Link
+              href="/"
+              onClick={() => setIsMobileOpen(false)}
+              className="flex items-center gap-3 overflow-hidden"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-bradesco-600 via-bradesco-700 to-rose-700 flex items-center justify-center shadow-lg shadow-bradesco-600/30 flex-shrink-0">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              {(!isCollapsed || isMobileOpen) && (
+                <div className="truncate">
+                  <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1.5">
+                    TreinaReport
+                    <span className="text-[10px] bg-bradesco-600/20 text-bradesco-400 font-bold px-1.5 py-0.5 rounded border border-bradesco-500/30">
+                      IA
+                    </span>
+                  </h1>
+                  <p className="text-[11px] text-dark-muted truncate">Padrão Bradesco</p>
                 </div>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+              )}
+            </Link>
 
-      {/* AI Assistant Banner Footer */}
-      <div className="p-4 m-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-850 border border-slate-700/60 text-xs">
-        <div className="flex items-center gap-2 text-blue-400 font-semibold mb-1">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Agente IA Integrado</span>
+            {/* Botão fechar no mobile */}
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="p-1.5 rounded-lg text-dark-muted hover:text-white hover:bg-dark-card lg:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Navegação */}
+          <nav className="p-3 space-y-1.5">
+            {(!isCollapsed || isMobileOpen) && (
+              <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-dark-muted">
+                Menu de Acesso
+              </div>
+            )}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileOpen(false)}
+                  title={isCollapsed && !isMobileOpen ? item.label : undefined}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-bradesco-600 to-bradesco-700 text-white shadow-md shadow-bradesco-600/30 font-bold'
+                      : 'text-dark-muted hover:bg-dark-card hover:text-white'
+                  } ${isCollapsed && !isMobileOpen ? 'justify-center' : ''}`}
+                >
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  {(!isCollapsed || isMobileOpen) && (
+                    <span className="truncate">{item.label}</span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <p className="text-slate-300 text-[11px] leading-relaxed">
-          Gera resumos executivos, analisa desvios de desempenho e formata e-mails prontos para envio.
-        </p>
-      </div>
-    </aside>
+
+        {/* Rodapé da Sidebar & Botão de Minimizar */}
+        <div className="p-3 border-t border-dark-border space-y-2">
+          {(!isCollapsed || isMobileOpen) && (
+            <div className="p-3 rounded-xl bg-dark-bg/80 border border-dark-border text-xs">
+              <div className="flex items-center gap-1.5 text-bradesco-400 font-bold mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-bradesco-500" />
+                <span className="text-[11px]">Agente IA Treinamento</span>
+              </div>
+              <p className="text-dark-muted text-[10px] leading-snug">
+                Geração executiva e análise pedagógica com suporte a Gemini gratuito.
+              </p>
+            </div>
+          )}
+
+          {/* Botão de Minimizar / Expandir no Desktop */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden lg:flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-dark-card hover:bg-dark-border text-dark-muted hover:text-white text-xs font-semibold border border-dark-border transition-all"
+            title={isCollapsed ? 'Expandir Menu Lateral' : 'Minimizar Menu Lateral'}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-bradesco-400" />
+            ) : (
+              <>
+                <ChevronLeft className="w-4 h-4 text-bradesco-400" />
+                <span>Minimizar Menu</span>
+              </>
+            )}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

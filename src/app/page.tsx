@@ -15,8 +15,6 @@ import {
   FileText,
   AlertCircle,
   PlusCircle,
-  ExternalLink,
-  ChevronRight,
   BookOpen
 } from 'lucide-react';
 import {
@@ -161,7 +159,7 @@ export default function DashboardPage() {
       });
   }, [reports]);
 
-  // Dados para Gráfico de Pizza de Níveis de Desempenho
+  // Dados para Gráfico de Pizza com paleta Bradesco
   const performanceChartData = useMemo(() => {
     const counts = {
       'Excelente': 0,
@@ -180,14 +178,14 @@ export default function DashboardPage() {
     });
 
     return [
-      { name: 'Excelente', value: counts['Excelente'], color: '#16a34a' },
-      { name: 'Bom', value: counts['Bom'], color: '#2563eb' },
-      { name: 'Regular', value: counts['Regular'], color: '#eab308' },
-      { name: 'Abaixo do Esperado', value: counts['Abaixo do Esperado'], color: '#dc2626' },
+      { name: 'Excelente', value: counts['Excelente'], color: '#10b981' },
+      { name: 'Bom', value: counts['Bom'], color: '#3b82f6' },
+      { name: 'Regular', value: counts['Regular'], color: '#f59e0b' },
+      { name: 'Abaixo do Esperado', value: counts['Abaixo do Esperado'], color: '#cc092f' }, // Vermelho Bradesco
     ].filter(item => item.value > 0);
   }, [reports]);
 
-  // Alunos que demandam atenção pedagógica (baixo desempenho recente ou faltas)
+  // Alunos que demandam atenção pedagógica
   const attentionStudents = useMemo(() => {
     const map = new Map<string, { studentName: string; lowPerfs: number; absences: number; reasons: string[] }>();
 
@@ -247,35 +245,35 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Seletor de Turma Ativa */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 shadow-xl border border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-bradesco-900/40 text-bradesco-400 border border-bradesco-600/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-bradesco-500 animate-pulse"></span>
               Em Treinamento (Turma Ativa)
             </span>
-            <span className="text-xs text-slate-400">|</span>
-            <span className="text-xs text-slate-500 font-medium">
+            <span className="text-xs text-dark-muted">|</span>
+            <span className="text-xs text-dark-muted font-medium">
               Turmas concluídas ficam fora deste painel
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             Dashboard de Acompanhamento
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-dark-muted mt-0.5">
             Métricas em tempo real, status dos sistemas e relatórios diários de treinamento.
           </p>
         </div>
 
         {/* Seletor de Turmas e Ações Rápidas */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {classes.length > 0 ? (
-            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-              <span className="text-xs font-semibold text-slate-600 px-2">Turma:</span>
+            <div className="flex items-center gap-2 bg-dark-card p-1.5 rounded-xl border border-dark-border w-full sm:w-auto">
+              <span className="text-xs font-bold text-dark-muted px-2">Turma:</span>
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="bg-white text-xs font-bold text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="bg-dark-bg text-xs font-bold text-white border border-dark-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-bradesco-500 flex-1 sm:flex-initial"
               >
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -285,7 +283,7 @@ export default function DashboardPage() {
               </select>
             </div>
           ) : (
-            <div className="text-xs text-amber-600 font-semibold bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+            <div className="text-xs text-amber-400 font-semibold bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-800/50">
               Nenhuma turma em treinamento no momento.
             </div>
           )}
@@ -293,16 +291,16 @@ export default function DashboardPage() {
           <button
             onClick={() => exportReportsToExcel(reports, selectedClass)}
             disabled={reports.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-dark-card hover:bg-dark-border text-white text-xs font-bold border border-dark-border transition-all disabled:opacity-40"
             title="Exportar todos os relatórios desta turma para Excel"
           >
-            <FileSpreadsheet className="w-4 h-4" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
             <span>Exportar Excel</span>
           </button>
 
           <Link
             href="/relatorio"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-bradesco-600 hover:bg-bradesco-700 text-white text-xs font-bold shadow-lg shadow-bradesco-600/30 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Lançar Reporte</span>
@@ -312,17 +310,17 @@ export default function DashboardPage() {
 
       {/* Caso não haja turma ativa cadastrada */}
       {classes.length === 0 && !loading && (
-        <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-8 text-center space-y-3">
-          <AlertCircle className="w-10 h-10 text-amber-600 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800">
+        <div className="bg-dark-surface border border-amber-900/40 rounded-2xl p-8 text-center space-y-3">
+          <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
+          <h3 className="text-base font-bold text-white">
             Nenhuma turma com status &ldquo;Em treinamento&rdquo; encontrada
           </h3>
-          <p className="text-xs text-slate-600 max-w-md mx-auto">
+          <p className="text-xs text-dark-muted max-w-md mx-auto">
             Todas as turmas foram concluídas ou ainda não foram cadastradas. Acesse a gestão de turmas para reativar uma turma ou criar uma nova turma em treinamento.
           </p>
           <Link
             href="/turmas"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-bradesco-600 text-white text-xs font-bold rounded-xl hover:bg-bradesco-700 shadow-md shadow-bradesco-600/30"
           >
             <Users className="w-4 h-4" />
             <span>Gerenciar Turmas</span>
@@ -333,143 +331,151 @@ export default function DashboardPage() {
       {/* Cards de KPIs Principais */}
       {selectedClass && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* KPI 1: Presença Média */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Frequência Média
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs font-bold text-dark-muted uppercase tracking-wider">
+                  Frequência
                 </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className={`text-2xl font-black ${kpis.avgPresenceRate >= 85 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-950/60 text-emerald-400 flex items-center justify-center border border-emerald-800/40">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-xl sm:text-2xl font-black ${kpis.avgPresenceRate >= 85 ? 'text-emerald-400' : 'text-amber-400'}`}>
                     {kpis.avgPresenceRate}%
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    {kpis.studentsCount} alunos
+                  <span className="text-[10px] text-dark-muted font-medium">
+                    média
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Média geral acumulada nos reportes
+                <p className="text-[10px] text-dark-muted mt-1 truncate">
+                  {kpis.studentsCount} alunos matriculados
                 </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6" />
               </div>
             </div>
 
             {/* KPI 2: Saúde dos Sistemas dos Alunos */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Sistemas dos Alunos
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs font-bold text-dark-muted uppercase tracking-wider">
+                  Sistemas
                 </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className={`text-2xl font-black ${kpis.systemsHealthRate >= 90 ? 'text-blue-600' : 'text-rose-600'}`}>
+                <div className="w-8 h-8 rounded-lg bg-blue-950/60 text-blue-400 flex items-center justify-center border border-blue-800/40">
+                  <Server className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-xl sm:text-2xl font-black ${kpis.systemsHealthRate >= 90 ? 'text-blue-400' : 'text-bradesco-400'}`}>
                     {kpis.systemsHealthRate}%
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    Estabilidade
+                  <span className="text-[10px] text-dark-muted font-medium">
+                    estabilidade
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Dias com sistemas 100% operacionais
+                <p className="text-[10px] text-dark-muted mt-1 truncate">
+                  dias 100% operacionais
                 </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <Server className="w-6 h-6" />
               </div>
             </div>
 
             {/* KPI 3: Alertas de Baixo Desempenho */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs font-bold text-dark-muted uppercase tracking-wider">
                   Pontos de Atenção
                 </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className={`text-2xl font-black ${kpis.lowPerformersTotal > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                <div className="w-8 h-8 rounded-lg bg-bradesco-950/60 text-bradesco-400 flex items-center justify-center border border-bradesco-800/40">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-xl sm:text-2xl font-black ${kpis.lowPerformersTotal > 0 ? 'text-bradesco-400' : 'text-slate-300'}`}>
                     {kpis.lowPerformersTotal}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-[10px] text-dark-muted font-medium">
                     ocorrências
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Casos de baixo rendimento justificados
+                <p className="text-[10px] text-dark-muted mt-1 truncate">
+                  casos justificados
                 </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
 
             {/* KPI 4: Total de Reportes Lançados */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Total de Dias Reportados
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-5 border border-dark-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs font-bold text-dark-muted uppercase tracking-wider">
+                  Dias de Aula
                 </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-black text-indigo-600">
+                <div className="w-8 h-8 rounded-lg bg-rose-950/60 text-bradesco-300 flex items-center justify-center border border-rose-900/40">
+                  <Calendar className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl sm:text-2xl font-black text-white">
                     {kpis.totalReports}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    aulas registradas
+                  <span className="text-[10px] text-dark-muted font-medium">
+                    lançados
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Instrutor: {selectedClass.instructor}
+                <p className="text-[10px] text-dark-muted mt-1 truncate">
+                  {selectedClass.instructor}
                 </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Calendar className="w-6 h-6" />
               </div>
             </div>
           </div>
 
           {/* Gráficos Interativos */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Gráfico 1: Evolução da Frequência */}
-            <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div className="lg:col-span-2 bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-bradesco-500" />
                     Evolução Diária da Frequência (% Presença)
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    Acompanhamento de assiduidade dos alunos ao longo das aulas
+                  <p className="text-[11px] text-dark-muted">
+                    Acompanhamento da assiduidade dos alunos
                   </p>
                 </div>
               </div>
 
               {attendanceChartData.length > 0 ? (
-                <div className="h-64 w-full">
+                <div className="h-56 sm:h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={attendanceChartData}>
                       <defs>
                         <linearGradient id="presenceGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                          <stop offset="5%" stopColor="#cc092f" stopOpacity={0.5} />
+                          <stop offset="95%" stopColor="#cc092f" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                      <YAxis domain={[0, 100]} stroke="#94a3b8" fontSize={11} tickLine={false} unit="%" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#232b3e" />
+                      <XAxis dataKey="date" stroke="#8e9bb0" fontSize={10} tickLine={false} />
+                      <YAxis domain={[0, 100]} stroke="#8e9bb0" fontSize={10} tickLine={false} unit="%" />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#0f172a',
-                          borderRadius: '8px',
+                          backgroundColor: '#161c2b',
+                          borderColor: '#232b3e',
+                          borderRadius: '10px',
                           color: '#fff',
-                          fontSize: '12px',
-                          border: 'none',
+                          fontSize: '11px',
                         }}
                         formatter={(value: any) => [`${value}%`, 'Presença']}
                       />
                       <Area
                         type="monotone"
                         dataKey="taxa"
-                        stroke="#2563eb"
+                        stroke="#cc092f"
                         strokeWidth={2.5}
                         fillOpacity={1}
                         fill="url(#presenceGrad)"
@@ -478,26 +484,26 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-64 flex items-center justify-center text-xs text-slate-400">
+                <div className="h-56 flex items-center justify-center text-xs text-dark-muted">
                   Nenhum dado de frequência registrado ainda.
                 </div>
               )}
             </div>
 
             {/* Gráfico 2: Distribuição de Desempenho */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm flex flex-col justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-bradesco-500" />
                   Níveis de Desempenho
                 </h3>
-                <p className="text-xs text-slate-500 mb-3">
+                <p className="text-[11px] text-dark-muted mb-2">
                   Distribuição acumulada de notas e conceitos
                 </p>
               </div>
 
               {performanceChartData.length > 0 ? (
-                <div className="h-56 w-full">
+                <div className="h-52 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -507,7 +513,7 @@ export default function DashboardPage() {
                         cx="50%"
                         cy="50%"
                         innerRadius={45}
-                        outerRadius={75}
+                        outerRadius={70}
                         paddingAngle={3}
                       >
                         {performanceChartData.map((entry, index) => (
@@ -516,7 +522,8 @@ export default function DashboardPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#0f172a',
+                          backgroundColor: '#161c2b',
+                          borderColor: '#232b3e',
                           borderRadius: '8px',
                           color: '#fff',
                           fontSize: '11px',
@@ -524,43 +531,43 @@ export default function DashboardPage() {
                       />
                       <Legend
                         verticalAlign="bottom"
-                        wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                        wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-56 flex items-center justify-center text-xs text-slate-400">
+                <div className="h-52 flex items-center justify-center text-xs text-dark-muted">
                   Nenhum registro de desempenho ainda.
                 </div>
               )}
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="pt-3 border-t border-dark-border flex items-center justify-between text-xs text-dark-muted">
                 <span>Alunos abaixo do esperado:</span>
-                <span className="font-bold text-rose-600">{kpis.lowPerformersTotal} ocorrências</span>
+                <span className="font-bold text-bradesco-400">{kpis.lowPerformersTotal} ocorrências</span>
               </div>
             </div>
           </div>
 
           {/* Painel de Alunos em Atenção Pedagógica */}
           {attentionStudents.length > 0 && (
-            <div className="bg-white rounded-2xl p-6 border border-rose-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-bradesco-900/60 shadow-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <AlertTriangle className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-lg bg-bradesco-950/80 text-bradesco-400 flex items-center justify-center border border-bradesco-800/40 flex-shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-bradesco-500" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">
+                    <h3 className="text-xs sm:text-sm font-bold text-white">
                       Painel de Atenção Pedagógica (Alunos em Risco)
                     </h3>
-                    <p className="text-xs text-slate-500">
-                      Alunos que registraram baixo desempenho ou faltas com motivos justificados
+                    <p className="text-[11px] text-dark-muted">
+                      Alunos com baixo desempenho ou faltas com motivos justificados
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg border border-rose-200">
-                  {attentionStudents.length} aluno(s) requerem acompanhamento
+                <span className="text-[11px] font-bold px-2.5 py-1 bg-bradesco-950 text-bradesco-300 rounded-lg border border-bradesco-800/50 self-start sm:self-auto">
+                  {attentionStudents.length} aluno(s) em observação
                 </span>
               </div>
 
@@ -568,26 +575,26 @@ export default function DashboardPage() {
                 {attentionStudents.map((st, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2"
+                    className="p-3.5 bg-dark-card rounded-xl border border-dark-border space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-slate-800">
+                      <span className="font-bold text-xs text-white">
                         {st.studentName}
                       </span>
                       <div className="flex gap-1.5 text-[10px]">
                         {st.lowPerfs > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-bradesco-950 text-bradesco-400 font-bold border border-bradesco-800/40">
                             {st.lowPerfs}x Baixo
                           </span>
                         )}
                         {st.absences > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 font-bold border border-amber-800/40">
                             {st.absences}x Falta
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="text-[11px] text-slate-600 space-y-1 bg-white p-2 rounded-lg border border-slate-100 max-h-24 overflow-y-auto">
+                    <div className="text-[11px] text-dark-muted space-y-1 bg-dark-bg p-2 rounded-lg border border-dark-border max-h-24 overflow-y-auto">
                       {st.reasons.map((r, rIdx) => (
                         <p key={rIdx} className="leading-snug">• {r}</p>
                       ))}
@@ -599,35 +606,35 @@ export default function DashboardPage() {
           )}
 
           {/* Tabela de Relatórios Recentes da Turma */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-xs sm:text-sm font-bold text-white">
                   Histórico de Reportes Diários Desta Turma
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] text-dark-muted">
                   Acompanhe os dados enviados, acione o Agente de IA para e-mail ou exporte em PDF
                 </p>
               </div>
-              <span className="text-xs font-medium text-slate-400">
-                Mostrando {reports.length} reporte(s)
+              <span className="text-[11px] font-medium text-dark-muted">
+                {reports.length} reporte(s) registrado(s)
               </span>
             </div>
 
             {reports.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
+                  <thead className="bg-dark-card text-dark-muted uppercase tracking-wider font-bold border-y border-dark-border">
                     <tr>
-                      <th className="py-3 px-4">Data</th>
-                      <th className="py-3 px-4">Sistemas dos Alunos</th>
-                      <th className="py-3 px-4">Frequência</th>
-                      <th className="py-3 px-4">Conteúdo Ministrado</th>
-                      <th className="py-3 px-4">Baixo Desempenho</th>
-                      <th className="py-3 px-4 text-right">Ações</th>
+                      <th className="py-3 px-3 sm:px-4">Data</th>
+                      <th className="py-3 px-3 sm:px-4">Sistemas</th>
+                      <th className="py-3 px-3 sm:px-4">Frequência</th>
+                      <th className="py-3 px-3 sm:px-4 hidden md:table-cell">Conteúdo</th>
+                      <th className="py-3 px-3 sm:px-4">Atenção</th>
+                      <th className="py-3 px-3 sm:px-4 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-dark-border text-dark-text">
                     {reports.map((rep) => {
                       const total = rep.attendance.length;
                       const present = rep.attendance.filter(a => a.status === 'PRESENTE').length;
@@ -635,59 +642,57 @@ export default function DashboardPage() {
                       const lowCount = rep.studentPerformances.filter(p => p.level === 'ABAIXO_DO_ESPERADO').length;
 
                       return (
-                        <tr key={rep.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
+                        <tr key={rep.id} className="hover:bg-dark-card/60 transition-colors">
+                          <td className="py-3 px-3 sm:px-4 font-bold text-white whitespace-nowrap">
                             {rep.date}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3 sm:px-4">
                             {rep.systemsStatus.operational ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
                                 100% OK
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                                <AlertTriangle className="w-3 h-3 text-rose-600" />
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-bradesco-400 bg-bradesco-950/60 px-2 py-0.5 rounded-full border border-bradesco-800/40">
                                 Com Falhas
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-4 whitespace-nowrap">
-                            <span className={`font-semibold ${rate >= 85 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                          <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
+                            <span className={`font-bold ${rate >= 85 ? 'text-emerald-400' : 'text-amber-400'}`}>
                               {rate}%
                             </span>
-                            <span className="text-[11px] text-slate-400 ml-1">
+                            <span className="text-[10px] text-dark-muted ml-1">
                               ({present}/{total})
                             </span>
                           </td>
-                          <td className="py-3 px-4 max-w-xs truncate" title={rep.topicsStudied}>
+                          <td className="py-3 px-3 sm:px-4 max-w-xs truncate hidden md:table-cell text-dark-muted" title={rep.topicsStudied}>
                             {rep.topicsStudied}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3 sm:px-4">
                             {lowCount > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-bradesco-950 text-bradesco-400 font-bold text-[10px] border border-bradesco-800/40">
                                 {lowCount} aluno(s)
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400">Nenhum</span>
+                              <span className="text-[11px] text-dark-muted">Nenhum</span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
                               {/* Botão Agente de IA para E-mail */}
                               <button
                                 onClick={() => handleOpenAiForReport(rep)}
-                                className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] flex items-center gap-1 transition-colors"
+                                className="px-2.5 py-1.5 rounded-xl bg-bradesco-600/20 hover:bg-bradesco-600 text-bradesco-400 hover:text-white font-bold text-[11px] flex items-center gap-1 border border-bradesco-500/30 transition-all"
                                 title="Ver ou gerar e-mail com Agente de IA"
                               >
-                                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                                <span>E-mail IA</span>
+                                <Sparkles className="w-3.5 h-3.5 text-bradesco-400" />
+                                <span className="hidden sm:inline">E-mail IA</span>
                               </button>
 
                               {/* Botão Exportar PDF */}
                               <button
                                 onClick={() => exportSingleReportToPdf(rep)}
-                                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-xl text-dark-muted hover:text-white hover:bg-dark-card border border-dark-border transition-colors"
                                 title="Baixar PDF formatado deste reporte"
                               >
                                 <Download className="w-4 h-4" />
@@ -701,12 +706,12 @@ export default function DashboardPage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-10 text-slate-400 text-xs">
+              <div className="text-center py-10 text-dark-muted text-xs">
                 Nenhum reporte diário lançado para esta turma ainda.
                 <div className="mt-3">
                   <Link
                     href="/relatorio"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-bradesco-600 text-white rounded-xl text-xs font-bold hover:bg-bradesco-700 shadow-md shadow-bradesco-600/30"
                   >
                     <PlusCircle className="w-4 h-4" />
                     <span>Lançar Primeiro Reporte</span>

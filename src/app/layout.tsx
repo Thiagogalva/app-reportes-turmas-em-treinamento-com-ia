@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AppLayoutWrapper from "@/components/AppLayoutWrapper";
 
 export const metadata: Metadata = {
-  title: "TreinaReport AI - Sistema de Reportes de Treinamento",
-  description: "Acompanhamento diário de turmas, sistemas, absenteísmo, desempenho individual e geração inteligente de e-mails com IA.",
+  title: "TreinaReport AI - Gestão de Treinamento",
+  description: "Acompanhamento diário de turmas, sistemas, absenteísmo, desempenho individual e geração inteligente de e-mails com IA no padrão Bradesco.",
 };
 
 export default function RootLayout({
@@ -13,14 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className="bg-slate-50 text-slate-900 antialiased flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-            {children}
-          </main>
-        </div>
+    <html lang="pt-BR" className="dark">
+      <body className="bg-dark-bg text-dark-text antialiased">
+        <AppLayoutWrapper>{children}</AppLayoutWrapper>
       </body>
     </html>
   );
