@@ -1,0 +1,106 @@
+{
+  "segments": [
+    {
+      "id": "seg-varejo",
+      "name": "Varejo",
+      "description": "Segmento geral de atendimento a correntistas e pessoas físicas da rede de agências e canais remotos.",
+      "systems": [
+        {
+          "id": "sys-geo",
+          "name": "Sistema GEO",
+          "description": "Gestão Estratégica Operacional Bradesco",
+          "mandatory": true
+        },
+        {
+          "id": "sys-wde",
+          "name": "WDE (Workspace Desktop Edition)",
+          "description": "Telefonia Genesys e softphone de atendimento",
+          "mandatory": true
+        },
+        {
+          "id": "sys-portal",
+          "name": "Portal Corporativo",
+          "description": "Consultas cadastrais e normativas",
+          "mandatory": false
+        }
+      ],
+      "createdAt": "2026-09-25T03:01:40.032Z",
+      "updatedAt": "2026-09-25T03:06:16.998Z"
+    },
+    {
+      "id": "seg-prime",
+      "name": "Prime",
+      "description": "Segmento de alta renda com ferramentas de assessoria financeira e consultoria especializada.",
+      "systems": [
+        {
+          "id": "sys-geo",
+          "name": "Sistema GEO",
+          "description": "Gestão Estratégica Operacional",
+          "mandatory": true
+        },
+        {
+          "id": "sys-wde-prime",
+          "name": "WDE Prime",
+          "description": "Fila prioritária e discador telefônico",
+          "mandatory": true
+        },
+        {
+          "id": "sys-invest",
+          "name": "Plataforma de Investimentos",
+          "description": "Assessoria de carteiras e produtos de mercado",
+          "mandatory": true
+        },
+        {
+          "id": "sys-crm-prime",
+          "name": "CRM Consultoria Prime",
+          "description": "Registro de reuniões e planejamento financeiro",
+          "mandatory": true
+        }
+      ],
+      "createdAt": "2026-09-25T03:01:40.032Z",
+      "updatedAt": "2026-09-25T03:01:40.032Z"
+    },
+    {
+      "id": "seg-cartoes",
+      "name": "Cartões & Meios de Pagamento",
+      "description": "Central especializada em emissão, bloqueio, transações e limite de cartões de crédito e débito.",
+      "systems": [
+        {
+          "id": "sys-geo",
+          "name": "Sistema GEO",
+          "description": "Gestão Estratégica Operacional",
+          "mandatory": true
+        },
+        {
+          "id": "sys-wde",
+          "name": "WDE (Workspace Desktop Edition)",
+          "description": "Telefonia integrada",
+          "mandatory": true
+        },
+        {
+          "id": "sys-vision",
+          "name": "Vision Plus / Autorizador",
+          "description": "Consulta e liberação de transações de cartões",
+          "mandatory": true
+        },
+        {
+          "id": "sys-antifraude",
+          "name": "Validador Antifraude",
+          "description": "Análise de compras suspeitas e bloqueio cautelar",
+          "mandatory": false
+        }
+      ],
+      "createdAt": "2026-09-25T03:01:40.032Z",
+      "updatedAt": "2026-09-25T03:01:40.032Z"
+    }
+  ],
+  "classes": [],
+  "reports": [],
+  "settings": {
+    "instructorDefaultName": "Seu Nome Aqui",
+    "companyName": "Nome da Empresa",
+    "defaultRecipients": "email@empresa.com",
+    "emailFooterNote": "Reporte gerado pelo TreinaReport AI.",
+    "geminiApiKey": ""
+  }
+}

@@ -29,3 +29,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database local (contém chaves de API e dados pessoais - NÃO commitar)
+data/db.json
+
