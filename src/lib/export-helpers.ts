@@ -16,29 +16,34 @@ export function exportReportsToExcel(reports: DailyReport[], currentClass?: Clas
     return {
       'Data': r.date,
       'Turma': r.className,
+      'Segmento': r.segmentName || currentClass?.segmentName || 'Geral',
       'Instrutor': r.instructorName,
       'Presença (%)': presenceRate,
       'Presentes': present,
-      'Total Alunos': total,
+      'Total Operadores': total,
       'Sistemas Operacionais': r.systemsStatus.operational ? 'SIM (100% OK)' : 'NÃO (Com falhas)',
       'Problemas nos Sistemas': r.systemsStatus.notes || 'Nenhum',
       'Tópicos Ministrados': r.topicsStudied,
       'Exercícios Práticos': r.practicalExercises || 'Nenhum',
-      'Alunos Baixo Desempenho': lowPerfCount,
+      'Operadores Baixo Desempenho': lowPerfCount,
       'Observações Gerais': r.generalObservations || '',
     };
   });
   const wsSummary = XLSX.utils.json_to_sheet(summaryData);
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo Geral');
 
-  // Aba 2: Detalhamento de Frequência e Absenteísmo
+  // Aba 2: Detalhamento de Frequência e Absenteísmo com Credenciais
   const attendanceData: any[] = [];
   reports.forEach(r => {
     r.attendance.forEach(att => {
       attendanceData.push({
         'Data': r.date,
         'Turma': r.className,
-        'Aluno': att.studentName,
+        'Segmento': r.segmentName || currentClass?.segmentName || 'Geral',
+        'Operador': att.studentName,
+        'Matrícula': att.enrollmentNumber || 'N/A',
+        'Login de Rede': att.networkLogin || 'N/A',
+        'Login Cliente': att.clientLogin || 'N/A',
         'Status de Presença': att.status,
         'Motivo da Falta / Atraso': att.absenceReason || '',
       });
@@ -47,28 +52,32 @@ export function exportReportsToExcel(reports: DailyReport[], currentClass?: Clas
   const wsAttendance = XLSX.utils.json_to_sheet(attendanceData);
   XLSX.utils.book_append_sheet(wb, wsAttendance, 'Frequência e Faltas');
 
-  // Aba 3: Desempenho Individual dos Alunos
+  // Aba 3: Desempenho Individual dos Operadores com Credenciais
   const performanceData: any[] = [];
   reports.forEach(r => {
     r.studentPerformances.forEach(perf => {
       performanceData.push({
         'Data': r.date,
         'Turma': r.className,
-        'Aluno': perf.studentName,
+        'Segmento': r.segmentName || currentClass?.segmentName || 'Geral',
+        'Operador': perf.studentName,
+        'Matrícula': perf.enrollmentNumber || 'N/A',
+        'Login de Rede': perf.networkLogin || 'N/A',
         'Conceito/Nível': perf.level,
-        'Nota (0-10)': perf.score ?? 'N/A',
+        'Nota (0-10)': perf.score !== undefined ? perf.score : 'N/A',
         'Motivo do Baixo Desempenho': perf.lowPerformanceReason || 'N/A',
-        'Observações do Aluno': perf.notes || '',
+        'Observações': perf.notes || '',
       });
     });
   });
   const wsPerformance = XLSX.utils.json_to_sheet(performanceData);
-  XLSX.utils.book_append_sheet(wb, wsPerformance, 'Desempenho dos Alunos');
+  XLSX.utils.book_append_sheet(wb, wsPerformance, 'Desempenho dos Operadores');
 
   // Aba 4: Ocorrências de Sistemas
   const systemsData = reports.map(r => ({
     'Data': r.date,
     'Turma': r.className,
+    'Segmento': r.segmentName || currentClass?.segmentName || 'Geral',
     'Status dos Sistemas': r.systemsStatus.operational ? '100% Operacional' : 'Instabilidade / Problema',
     'Descrição da Ocorrência': r.systemsStatus.notes || 'Sem intercorrências',
     'Sistemas/Ferramentas Afetadas': (r.systemsStatus.affectedSystems || []).join(', ') || 'Nenhuma',
@@ -77,8 +86,8 @@ export function exportReportsToExcel(reports: DailyReport[], currentClass?: Clas
   XLSX.utils.book_append_sheet(wb, wsSystems, 'Status de Sistemas');
 
   const filename = currentClass
-    ? `Relatorio_Treinamento_${currentClass.name.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`
-    : `Relatorio_Treinamento_Export_${new Date().toISOString().split('T')[0]}.xlsx`;
+    ? `Relatorio_Treinamento_Bradesco_${currentClass.name.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`
+    : `Relatorio_Treinamento_Bradesco_${new Date().toISOString().split('T')[0]}.xlsx`;
 
   XLSX.writeFile(wb, filename);
 }
@@ -96,9 +105,9 @@ export function exportSingleReportToPdf(report: DailyReport) {
   doc.setFont('helvetica', 'bold');
   doc.text('REPORTE DIÁRIO DE TREINAMENTO', 14, 18);
 
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Turma: ${report.className} | Data: ${report.date} | Instrutor: ${report.instructorName}`, 14, 25);
+  doc.text(`Turma: ${report.className} | Segmento: ${report.segmentName || 'Geral'} | Data: ${report.date} | Instrutor: ${report.instructorName}`, 14, 25);
 
   let currentY = 40;
 
@@ -106,7 +115,7 @@ export function exportSingleReportToPdf(report: DailyReport) {
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('1. Infraestrutura e Status dos Sistemas dos Alunos', 14, currentY);
+  doc.text('1. Infraestrutura e Status dos Sistemas dos Operadores', 14, currentY);
   currentY += 6;
 
   doc.setFontSize(10);
@@ -114,7 +123,7 @@ export function exportSingleReportToPdf(report: DailyReport) {
   const sysStatus = report.systemsStatus.operational ? 'OPERACIONAL (100% estável)' : 'INSTABILIDADE / COM FALHAS';
   doc.text(`Status Geral: ${sysStatus}`, 14, currentY);
   currentY += 5;
-  
+
   if (report.systemsStatus.notes) {
     const splitNotes = doc.splitTextToSize(`Observação Técnica: ${report.systemsStatus.notes}`, pageWidth - 28);
     doc.text(splitNotes, 14, currentY);
@@ -143,21 +152,22 @@ export function exportSingleReportToPdf(report: DailyReport) {
     currentY += 4;
   }
 
-  // Tabela de Frequência e Absenteísmo
+  // Tabela de Frequência e Absenteísmo com Credenciais
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('3. Frequência e Absenteísmo', 14, currentY);
+  doc.text('3. Frequência e Absenteísmo dos Operadores', 14, currentY);
   currentY += 4;
 
   const attendanceRows = report.attendance.map(a => [
     a.studentName,
+    a.networkLogin || '-',
     a.status,
     a.absenceReason || (a.status === 'PRESENTE' ? 'N/A' : 'Não informado')
   ]);
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Aluno', 'Status', 'Motivo da Falta / Atraso']],
+    head: [['Operador', 'Login Rede', 'Status', 'Motivo da Falta / Atraso']],
     body: attendanceRows,
     headStyles: { fillColor: [204, 9, 47], textColor: [255, 255, 255] },
     alternateRowStyles: { fillColor: [250, 245, 245] },
@@ -174,11 +184,12 @@ export function exportSingleReportToPdf(report: DailyReport) {
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('4. Desempenho Individual dos Alunos', 14, currentY);
+  doc.text('4. Desempenho Individual dos Operadores', 14, currentY);
   currentY += 4;
 
   const performanceRows = report.studentPerformances.map(p => [
     p.studentName,
+    p.networkLogin || '-',
     p.level.replace(/_/g, ' '),
     p.score !== undefined ? `${p.score}` : '-',
     p.lowPerformanceReason || p.notes || '-'
@@ -186,14 +197,14 @@ export function exportSingleReportToPdf(report: DailyReport) {
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Aluno', 'Conceito', 'Nota', 'Justificativa / Observação']],
+    head: [['Operador', 'Login Rede', 'Conceito', 'Nota', 'Justificativa / Observação']],
     body: performanceRows,
     headStyles: { fillColor: [181, 7, 41], textColor: [255, 255, 255] },
     alternateRowStyles: { fillColor: [250, 245, 245] },
     margin: { left: 14, right: 14 },
     styles: { cellWidth: 'auto', overflow: 'linebreak' },
     columnStyles: {
-      3: { cellWidth: 80 }
+      4: { cellWidth: 70 }
     }
   });
 
@@ -208,7 +219,7 @@ export function exportSingleReportToPdf(report: DailyReport) {
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(181, 7, 41);
     doc.text('5. Resumo Executivo e Plano de Ação (Agente de IA)', 14, currentY);
     currentY += 6;
 
@@ -229,14 +240,14 @@ export function exportSingleReportToPdf(report: DailyReport) {
     }
   }
 
-  // Rodapé com data de emissão
+  // Rodapé
   const totalPages = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text(`Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, doc.internal.pageSize.getHeight() - 8);
+    doc.text(`Página ${i} de ${totalPages} - Padrão Bradesco - Emitido em ${new Date().toLocaleString('pt-BR')}`, 14, doc.internal.pageSize.getHeight() - 8);
   }
 
-  doc.save(`Reporte_${report.className.replace(/[^a-zA-Z0-9]/g, '_')}_${report.date}.pdf`);
+  doc.save(`Reporte_Bradesco_${report.className.replace(/[^a-zA-Z0-9]/g, '_')}_${report.date}.pdf`);
 }

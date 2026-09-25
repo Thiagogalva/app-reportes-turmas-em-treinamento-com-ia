@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Bot
+  Bot,
+  Layers
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -43,6 +44,12 @@ export default function Sidebar({
       href: '/relatorio',
       icon: FileSpreadsheet,
       desc: 'Lançar dados do dia'
+    },
+    {
+      label: 'Segmentos & Sistemas',
+      href: '/segmentos',
+      icon: Layers,
+      desc: 'GEO, WDE e Segmentos'
     },
     {
       label: 'Gestão de Turmas',
