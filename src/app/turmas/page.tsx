@@ -13,10 +13,10 @@ import {
   X,
   Info,
   Layers,
-  Key,
-  CreditCard
+  FileSpreadsheet,
 } from 'lucide-react';
 import { ClassGroup, ClassStatus, Student, Segment } from '@/types';
+import OperatorImportModal from '@/components/OperatorImportModal';
 
 export default function TurmasPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -47,6 +47,7 @@ export default function TurmasPage() {
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [bulkStudentsText, setBulkStudentsText] = useState('');
   const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
 
@@ -160,6 +161,26 @@ export default function TurmasPage() {
     setBulkStudentsText('');
     setShowBulkAdd(false);
   };
+
+  const handleImportConfirm = (importedStudents: Student[]) => {
+    setStudents(prev => {
+      // Remove duplicatas pelo networkLogin
+      const existingLogins = new Set(prev.map(s => s.networkLogin.toLowerCase()));
+      const unique = importedStudents.filter(
+        s => !existingLogins.has(s.networkLogin.toLowerCase())
+      );
+      const duplicates = importedStudents.length - unique.length;
+      if (duplicates > 0) {
+        setFeedbackMsg({
+          text: `${unique.length} operador(es) importado(s). ${duplicates} ignorado(s) por login de rede já existente.`,
+          type: 'info',
+        });
+        setTimeout(() => setFeedbackMsg(null), 5000);
+      }
+      return [...prev, ...unique];
+    });
+  };
+
 
   const handleSaveClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -632,13 +653,24 @@ export default function TurmasPage() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowBulkAdd(!showBulkAdd)}
-                    className="text-xs font-bold text-bradesco-400 hover:text-bradesco-300"
-                  >
-                    {showBulkAdd ? 'Adicionar individualmente' : '+ Colar Lista em Lote'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowImportModal(true)}
+                      className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      Importar Planilha
+                    </button>
+                    <span className="text-dark-border">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowBulkAdd(!showBulkAdd)}
+                      className="text-xs font-bold text-bradesco-400 hover:text-bradesco-300"
+                    >
+                      {showBulkAdd ? 'Adicionar individualmente' : '+ Colar Lista em Lote'}
+                    </button>
+                  </div>
                 </div>
 
                 {showBulkAdd ? (
@@ -766,6 +798,14 @@ export default function TurmasPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal de Importação de Planilha */}
+      {showImportModal && (
+        <OperatorImportModal
+          onClose={() => setShowImportModal(false)}
+          onConfirm={handleImportConfirm}
+        />
       )}
     </div>
   );
