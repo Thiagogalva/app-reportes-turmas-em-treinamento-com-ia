@@ -1,8 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Menu, Bot, Calendar } from 'lucide-react';
+
+const subscribeNoop = () => () => {};
+
+const formatToday = () =>
+  new Date().toLocaleDateString('pt-BR', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  });
 
 export default function AppLayoutWrapper({
   children,
@@ -12,11 +21,11 @@ export default function AppLayoutWrapper({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const todayFormatted = new Date().toLocaleDateString('pt-BR', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-  });
+  const todayFormatted = useSyncExternalStore(
+    subscribeNoop,
+    formatToday,
+    () => null,
+  );
 
   return (
     <div className="flex min-h-screen bg-dark-bg text-dark-text antialiased">
@@ -56,7 +65,7 @@ export default function AppLayoutWrapper({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-dark-muted font-medium bg-dark-card px-3 py-1.5 rounded-xl border border-dark-border">
               <Calendar className="w-3.5 h-3.5 text-bradesco-500" />
-              <span className="capitalize">{todayFormatted}</span>
+              <span className="capitalize min-w-[6.5rem]">{todayFormatted ?? '\u00A0'}</span>
             </div>
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sistema Online" />
           </div>
