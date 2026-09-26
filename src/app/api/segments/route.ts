@@ -7,14 +7,14 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (id) {
-      const segment = getSegmentById(id);
+      const segment = await getSegmentById(id);
       if (!segment) {
         return NextResponse.json({ success: false, error: 'Segmento não encontrado.' }, { status: 404 });
       }
       return NextResponse.json({ success: true, data: segment });
     }
 
-    const segments = getSegments();
+    const segments = await getSegments();
     return NextResponse.json({ success: true, data: segments });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'O nome do segmento é obrigatório.' }, { status: 400 });
     }
 
-    const saved = saveSegment(body);
+    const saved = await saveSegment(body);
     return NextResponse.json({ success: true, data: saved });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -42,7 +42,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ success: false, error: 'ID do segmento é obrigatório.' }, { status: 400 });
     }
-    const deleted = deleteSegment(id);
+    const deleted = await deleteSegment(id);
     return NextResponse.json({ success: true, deleted });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

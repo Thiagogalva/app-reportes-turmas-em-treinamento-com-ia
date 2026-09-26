@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   Sparkles,
@@ -10,7 +10,9 @@ import {
   FileText,
   AlertTriangle,
   Lightbulb,
-  ExternalLink
+  ExternalLink,
+  Image as ImageIcon,
+  Share2
 } from 'lucide-react';
 import { AiGeneratedReport, DailyReport } from '@/types';
 
@@ -35,6 +37,71 @@ export default function AiAgentModal({
 }: AiAgentModalProps) {
   const [activeTab, setActiveTab] = useState<'formatted' | 'text'>('formatted');
   const [copiedType, setCopiedType] = useState<string | null>(null);
+  const [mailtoHint, setMailtoHint] = useState<'copied' | 'text-only' | 'failed' | null>(null);
+  const [imageStatus, setImageStatus] = useState<'idle' | 'generating' | 'error'>('idle');
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const canShareFiles = typeof navigator !== 'undefined' && !!(navigator as any).canShare;
+
+  const generateReportImage = async (): Promise<File | null> => {
+    if (!previewRef.current || !aiData) return null;
+    const html2canvas = (await import('html2canvas')).default;
+    const canvas = await html2canvas(previewRef.current, {
+      backgroundColor: '#ffffff',
+      scale: 2, // maior nitidez (retina)
+      useCORS: true,
+    });
+    const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1));
+    if (!blob) return null;
+    const fileName = `reporte-${(report?.date || 'treinamento')}.png`;
+    return new File([blob], fileName, { type: 'image/png' });
+  };
+
+  const downloadReportImage = async () => {
+    setImageStatus('generating');
+    try {
+      const file = await generateReportImage();
+      if (!file) throw new Error('Falha ao gerar imagem');
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setImageStatus('idle');
+    } catch (err) {
+      console.error('Erro ao gerar imagem do reporte:', err);
+      setImageStatus('error');
+      setTimeout(() => setImageStatus('idle'), 4000);
+    }
+  };
+
+  const shareReportImage = async () => {
+    setImageStatus('generating');
+    try {
+      const file = await generateReportImage();
+      if (!file) throw new Error('Falha ao gerar imagem');
+      const shareData = { files: [file], title: aiData?.subject || 'Reporte de Treinamento' };
+      if ((navigator as any).canShare?.(shareData)) {
+        await (navigator as any).share(shareData);
+        setImageStatus('idle');
+      } else {
+        // Sem suporte a compartilhar arquivos (ex: desktop): baixa a imagem normalmente
+        await downloadReportImage();
+      }
+    } catch (err: any) {
+      // Usuário cancelou o compartilhamento — não é um erro real
+      if (err?.name === 'AbortError') {
+        setImageStatus('idle');
+        return;
+      }
+      console.error('Erro ao compartilhar imagem do reporte:', err);
+      setImageStatus('error');
+      setTimeout(() => setImageStatus('idle'), 4000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -63,11 +130,40 @@ export default function AiAgentModal({
     }
   };
 
-  const openMailto = () => {
+  const openMailto = async () => {
     if (!aiData) return;
+
+    // IMPORTANTE: links "mailto:" nunca suportam corpo em HTML — é uma limitação
+    // de todo navegador/cliente de e-mail, não apenas deste sistema. Por isso,
+    // copiamos a versão formatada para a área de transferência ANTES de abrir o
+    // e-mail (com o corpo em branco), para o usuário só precisar colar (Ctrl+V).
+    try {
+      if (navigator.clipboard && (window as any).ClipboardItem) {
+        const blobHtml = new Blob([aiData.bodyHtml], { type: 'text/html' });
+        const blobText = new Blob([aiData.bodyText], { type: 'text/plain' });
+        const item = new (window as any).ClipboardItem({
+          'text/html': blobHtml,
+          'text/plain': blobText,
+        });
+        await navigator.clipboard.write([item]);
+        setMailtoHint('copied');
+      } else {
+        // Navegador sem suporte a clipboard rico: melhor copiar o texto puro
+        // do que deixar o corpo do e-mail totalmente vazio.
+        await navigator.clipboard.writeText(aiData.bodyText);
+        setMailtoHint('text-only');
+      }
+    } catch (err) {
+      console.warn("Falha ao copiar automaticamente antes de abrir o e-mail:", err);
+      setMailtoHint('failed');
+    }
+
     const subject = encodeURIComponent(aiData.subject);
-    const body = encodeURIComponent(aiData.bodyText);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    // Corpo propositalmente vazio: o cliente de e-mail nunca renderiza HTML aqui.
+    // O conteúdo formatado já está na área de transferência para o usuário colar.
+    window.location.href = `mailto:?subject=${subject}&body=`;
+
+    setTimeout(() => setMailtoHint(null), 8000);
   };
 
   return (
@@ -193,7 +289,7 @@ export default function AiAgentModal({
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => copyToClipboard('html')}
                       className="px-3 py-1.5 rounded-lg bg-bradesco-600 hover:bg-bradesco-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-bradesco-600/30 transition-colors"
@@ -205,16 +301,49 @@ export default function AiAgentModal({
                     <button
                       onClick={openMailto}
                       className="px-3 py-1.5 rounded-lg bg-dark-bg hover:bg-dark-border text-dark-text text-xs font-semibold flex items-center gap-1.5 border border-dark-border transition-colors"
+                      title="Copia o e-mail formatado e abre seu cliente de e-mail — depois é só colar (Ctrl+V) no corpo da mensagem"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Abrir no E-mail</span>
+                      <span>Copiar e Abrir E-mail</span>
+                    </button>
+                    <button
+                      onClick={canShareFiles ? shareReportImage : downloadReportImage}
+                      disabled={imageStatus === 'generating'}
+                      className="px-3 py-1.5 rounded-lg bg-dark-bg hover:bg-dark-border text-dark-text text-xs font-semibold flex items-center gap-1.5 border border-dark-border transition-colors disabled:opacity-50"
+                      title="Gera uma imagem (PNG) do reporte formatado, pronta para anexar em qualquer e-mail, WhatsApp ou Telegram"
+                    >
+                      {canShareFiles ? <Share2 className="w-3.5 h-3.5" /> : <ImageIcon className="w-3.5 h-3.5" />}
+                      <span>
+                        {imageStatus === 'generating'
+                          ? 'Gerando imagem...'
+                          : canShareFiles ? 'Compartilhar como Imagem' : 'Baixar como Imagem'}
+                      </span>
                     </button>
                   </div>
                 </div>
 
+                {mailtoHint && (
+                  <div className={`px-3 py-2 text-xs font-semibold border-b ${
+                    mailtoHint === 'failed'
+                      ? 'bg-red-950/40 text-red-300 border-red-900'
+                      : 'bg-emerald-950/40 text-emerald-300 border-emerald-900'
+                  }`}>
+                    {mailtoHint === 'copied' && 'E-mail formatado copiado! No app de e-mail que abriu, clique no corpo da mensagem e cole com Ctrl+V (ou Cmd+V).'}
+                    {mailtoHint === 'text-only' && 'Seu navegador não suporta colar com formatação — copiamos a versão em texto puro. Cole com Ctrl+V no corpo do e-mail.'}
+                    {mailtoHint === 'failed' && 'Não foi possível copiar automaticamente. Use o botão "Copiar E-mail Formatado" acima e cole manualmente no e-mail.'}
+                  </div>
+                )}
+
+                {imageStatus === 'error' && (
+                  <div className="px-3 py-2 text-xs font-semibold border-b bg-red-950/40 text-red-300 border-red-900">
+                    Não foi possível gerar a imagem do reporte. Tente novamente ou use a opção "Copiar E-mail Formatado".
+                  </div>
+                )}
+
                 <div className="p-4 bg-white text-slate-900 max-h-96 overflow-y-auto">
                   {activeTab === 'formatted' ? (
                     <div
+                      ref={previewRef}
                       className="prose prose-sm max-w-none text-slate-900"
                       dangerouslySetInnerHTML={{ __html: aiData.bodyHtml }}
                     />

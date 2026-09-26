@@ -1,15 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import AppLayoutWrapper from "@/components/AppLayoutWrapper";
+import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "TreinaReport AI - Gestão de Treinamento",
-  description: "Acompanhamento diário de turmas, sistemas, absenteísmo, desempenho individual e geração inteligente de e-mails com IA no padrão Bradesco.",
+  title: "Visão Coordenadora — TreinaReport AI",
+  description: "Painel somente leitura para coordenação de turmas em treinamento.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "TreinaReport AI",
+    title: "TreinaReport | Coord",
   },
   icons: {
     icon: "/icon-192.png",
@@ -18,29 +17,28 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#cc092f",
+  themeColor: "#1e3a5f",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
-export default function RootLayout({
+export default function ViewerLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="pt-BR" className="dark">
       <head>
-        {/* PWA / iOS */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="TreinaReport AI" />
+        <meta name="apple-mobile-web-app-title" content="TreinaReport | Coord" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="bg-dark-bg text-dark-text antialiased">
-        <AppLayoutWrapper>{children}</AppLayoutWrapper>
+      <body className="bg-dark-bg text-dark-text antialiased min-h-screen">
+        {children}
       </body>
     </html>
   );

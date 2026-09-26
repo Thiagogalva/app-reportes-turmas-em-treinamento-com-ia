@@ -1,9 +1,39 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { neon } from '@neondatabase/serverless';
 import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings } from '@/types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+
+// Se DATABASE_URL (ou POSTGRES_URL) estiver definida, usamos Postgres (Neon) como
+// armazenamento persistente. Caso contrário, caímos para o arquivo local
+// data/db.json — útil para rodar em desenvolvimento sem precisar configurar banco.
+const CONNECTION_STRING = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+const sql = CONNECTION_STRING ? neon(CONNECTION_STRING) : null;
+
+let schemaReadyPromise: Promise<void> | null = null;
+
+async function ensurePostgresSchema(): Promise<void> {
+  if (!sql) return;
+  if (!schemaReadyPromise) {
+    schemaReadyPromise = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS app_data (
+          id SMALLINT PRIMARY KEY DEFAULT 1,
+          data JSONB NOT NULL,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+      `;
+      await sql`
+        INSERT INTO app_data (id, data)
+        VALUES (1, ${JSON.stringify(INITIAL_DATA)}::jsonb)
+        ON CONFLICT (id) DO NOTHING
+      `;
+    })();
+  }
+  return schemaReadyPromise;
+}
 
 const INITIAL_SEGMENTS: Segment[] = [
   {
@@ -140,7 +170,7 @@ const INITIAL_DATA: DatabaseSchema = {
   }
 };
 
-function ensureDbExists(): void {
+function ensureLocalFileDbExists(): void {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
@@ -162,8 +192,22 @@ function ensureDbExists(): void {
   }
 }
 
-export function readDb(): DatabaseSchema {
-  ensureDbExists();
+export async function readDb(): Promise<DatabaseSchema> {
+  if (sql) {
+    await ensurePostgresSchema();
+    try {
+      const rows = await sql`SELECT data FROM app_data WHERE id = 1`;
+      const parsed = (rows[0]?.data ?? INITIAL_DATA) as DatabaseSchema;
+      if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
+      return parsed;
+    } catch (error) {
+      console.error('Erro ao ler banco de dados Postgres:', error);
+      return INITIAL_DATA;
+    }
+  }
+
+  // Fallback: arquivo JSON local (desenvolvimento sem DATABASE_URL configurada)
+  ensureLocalFileDbExists();
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(raw) as DatabaseSchema;
@@ -175,26 +219,37 @@ export function readDb(): DatabaseSchema {
   }
 }
 
-export function writeDb(data: DatabaseSchema): void {
-  ensureDbExists();
+export async function writeDb(data: DatabaseSchema): Promise<void> {
+  if (sql) {
+    await ensurePostgresSchema();
+    await sql`
+      INSERT INTO app_data (id, data, updated_at)
+      VALUES (1, ${JSON.stringify(data)}::jsonb, now())
+      ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+    `;
+    return;
+  }
+
+  // Fallback: arquivo JSON local
+  ensureLocalFileDbExists();
   const tempPath = `${DB_FILE}.tmp`;
   fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
   fs.renameSync(tempPath, DB_FILE);
 }
 
 // ==================== SEGMENTOS ====================
-export function getSegments(): Segment[] {
-  const db = readDb();
+export async function getSegments(): Promise<Segment[]> {
+  const db = await readDb();
   return db.segments || INITIAL_SEGMENTS;
 }
 
-export function getSegmentById(id: string): Segment | undefined {
-  const db = readDb();
+export async function getSegmentById(id: string): Promise<Segment | undefined> {
+  const db = await readDb();
   return (db.segments || []).find(s => s.id === id);
 }
 
-export function saveSegment(segmentData: Omit<Segment, 'createdAt' | 'updatedAt'> & { id?: string }): Segment {
-  const db = readDb();
+export async function saveSegment(segmentData: Omit<Segment, 'createdAt' | 'updatedAt'> & { id?: string }): Promise<Segment> {
+  const db = await readDb();
   const now = new Date().toISOString();
 
   if (segmentData.id) {
@@ -207,7 +262,7 @@ export function saveSegment(segmentData: Omit<Segment, 'createdAt' | 'updatedAt'
         updatedAt: now,
       };
       db.segments[index] = updated;
-      writeDb(db);
+      await writeDb(db);
       return updated;
     }
   }
@@ -219,37 +274,37 @@ export function saveSegment(segmentData: Omit<Segment, 'createdAt' | 'updatedAt'
     updatedAt: now,
   };
   db.segments.push(newSegment);
-  writeDb(db);
+  await writeDb(db);
   return newSegment;
 }
 
-export function deleteSegment(id: string): boolean {
-  const db = readDb();
+export async function deleteSegment(id: string): Promise<boolean> {
+  const db = await readDb();
   const initialLength = db.segments.length;
   db.segments = db.segments.filter(s => s.id !== id);
   if (db.segments.length !== initialLength) {
-    writeDb(db);
+    await writeDb(db);
     return true;
   }
   return false;
 }
 
 // ==================== TURMAS ====================
-export function getClasses(onlyActive: boolean = false): ClassGroup[] {
-  const db = readDb();
+export async function getClasses(onlyActive: boolean = false): Promise<ClassGroup[]> {
+  const db = await readDb();
   if (onlyActive) {
     return db.classes.filter(c => c.status === 'EM_TREINAMENTO');
   }
   return db.classes;
 }
 
-export function getClassById(id: string): ClassGroup | undefined {
-  const db = readDb();
+export async function getClassById(id: string): Promise<ClassGroup | undefined> {
+  const db = await readDb();
   return db.classes.find(c => c.id === id);
 }
 
-export function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updatedAt'> & { id?: string }): ClassGroup {
-  const db = readDb();
+export async function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updatedAt'> & { id?: string }): Promise<ClassGroup> {
+  const db = await readDb();
   const now = new Date().toISOString();
 
   // Se o segmento foi informado, sincroniza o nome do segmento
@@ -268,7 +323,7 @@ export function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updatedAt'>
         updatedAt: now,
       };
       db.classes[index] = updated;
-      writeDb(db);
+      await writeDb(db);
       return updated;
     }
   }
@@ -280,37 +335,37 @@ export function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updatedAt'>
     updatedAt: now,
   };
   db.classes.push(newClass);
-  writeDb(db);
+  await writeDb(db);
   return newClass;
 }
 
-export function deleteClass(id: string): boolean {
-  const db = readDb();
+export async function deleteClass(id: string): Promise<boolean> {
+  const db = await readDb();
   const initialLength = db.classes.length;
   db.classes = db.classes.filter(c => c.id !== id);
   if (db.classes.length !== initialLength) {
-    writeDb(db);
+    await writeDb(db);
     return true;
   }
   return false;
 }
 
 // ==================== REPORTES ====================
-export function getReports(classId?: string): DailyReport[] {
-  const db = readDb();
+export async function getReports(classId?: string): Promise<DailyReport[]> {
+  const db = await readDb();
   if (classId) {
     return db.reports.filter(r => r.classId === classId).sort((a, b) => b.date.localeCompare(a.date));
   }
   return db.reports.sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export function getReportById(id: string): DailyReport | undefined {
-  const db = readDb();
+export async function getReportById(id: string): Promise<DailyReport | undefined> {
+  const db = await readDb();
   return db.reports.find(r => r.id === id);
 }
 
-export function saveReport(reportData: Omit<DailyReport, 'createdAt' | 'updatedAt'> & { id?: string }): DailyReport {
-  const db = readDb();
+export async function saveReport(reportData: Omit<DailyReport, 'createdAt' | 'updatedAt'> & { id?: string }): Promise<DailyReport> {
+  const db = await readDb();
   const now = new Date().toISOString();
 
   // Atualiza validação de sistemas na turma se todos os sistemas de todos os operadores estiverem OK
@@ -332,7 +387,7 @@ export function saveReport(reportData: Omit<DailyReport, 'createdAt' | 'updatedA
         updatedAt: now,
       };
       db.reports[index] = updated;
-      writeDb(db);
+      await writeDb(db);
       return updated;
     }
   }
@@ -344,33 +399,33 @@ export function saveReport(reportData: Omit<DailyReport, 'createdAt' | 'updatedA
     updatedAt: now,
   };
   db.reports.push(newReport);
-  writeDb(db);
+  await writeDb(db);
   return newReport;
 }
 
-export function deleteReport(id: string): boolean {
-  const db = readDb();
+export async function deleteReport(id: string): Promise<boolean> {
+  const db = await readDb();
   const initialLength = db.reports.length;
   db.reports = db.reports.filter(r => r.id !== id);
   if (db.reports.length !== initialLength) {
-    writeDb(db);
+    await writeDb(db);
     return true;
   }
   return false;
 }
 
 // ==================== CONFIGURAÇÕES ====================
-export function getSettings(): AppSettings {
-  const db = readDb();
+export async function getSettings(): Promise<AppSettings> {
+  const db = await readDb();
   return db.settings || {};
 }
 
-export function updateSettings(settings: Partial<AppSettings>): AppSettings {
-  const db = readDb();
+export async function updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
+  const db = await readDb();
   db.settings = {
     ...db.settings,
     ...settings,
   };
-  writeDb(db);
+  await writeDb(db);
   return db.settings;
 }

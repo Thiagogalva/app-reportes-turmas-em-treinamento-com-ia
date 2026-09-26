@@ -3,7 +3,7 @@ import { DailyReport, AiGeneratedReport } from '@/types';
 import { getSettings } from './db';
 
 export async function generateAiTrainingReport(report: DailyReport): Promise<AiGeneratedReport> {
-  const settings = getSettings();
+  const settings = await getSettings();
   const apiKey = process.env.GEMINI_API_KEY || settings.geminiApiKey;
 
   // Calculos auxiliares para contextualizar o modelo

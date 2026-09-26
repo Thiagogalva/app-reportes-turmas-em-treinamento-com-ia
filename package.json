@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@google/genai": "^2.3.0",
+    "@neondatabase/serverless": "^1.1.0",
     "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.475.0",

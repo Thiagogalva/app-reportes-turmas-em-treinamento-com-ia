@@ -8,14 +8,14 @@ export async function GET(request: NextRequest) {
     const classId = searchParams.get('classId') || undefined;
 
     if (id) {
-      const report = getReportById(id);
+      const report = await getReportById(id);
       if (!report) {
         return NextResponse.json({ success: false, error: 'Reporte não encontrado.' }, { status: 404 });
       }
       return NextResponse.json({ success: true, data: report });
     }
 
-    const reports = getReports(classId);
+    const reports = await getReports(classId);
     return NextResponse.json({ success: true, data: reports });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const saved = saveReport(body);
+    const saved = await saveReport(body);
     return NextResponse.json({ success: true, data: saved });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -57,7 +57,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ success: false, error: 'ID do reporte é obrigatório.' }, { status: 400 });
     }
-    const deleted = deleteReport(id);
+    const deleted = await deleteReport(id);
     return NextResponse.json({ success: true, deleted });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
