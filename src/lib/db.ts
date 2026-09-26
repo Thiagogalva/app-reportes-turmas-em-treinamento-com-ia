@@ -167,7 +167,8 @@ const INITIAL_DATA: DatabaseSchema = {
     companyName: 'Bradesco - Treinamento & Capacitação',
     defaultRecipients: 'gestao.treinamento@bradesco.com.br, coordenacao@bradesco.com.br',
     emailFooterNote: 'Reporte gerado pelo Sistema TreinaReport AI - Padrão Bradesco.'
-  }
+  },
+  users: []
 };
 
 function ensureLocalFileDbExists(): void {
@@ -199,6 +200,7 @@ export async function readDb(): Promise<DatabaseSchema> {
       const rows = await sql`SELECT data FROM app_data WHERE id = 1`;
       const parsed = (rows[0]?.data ?? INITIAL_DATA) as DatabaseSchema;
       if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
+      if (!parsed.users) parsed.users = [];
       return parsed;
     } catch (error) {
       console.error('Erro ao ler banco de dados Postgres:', error);
@@ -212,6 +214,7 @@ export async function readDb(): Promise<DatabaseSchema> {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(raw) as DatabaseSchema;
     if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
+    if (!parsed.users) parsed.users = [];
     return parsed;
   } catch (error) {
     console.error('Erro ao ler banco de dados JSON:', error);

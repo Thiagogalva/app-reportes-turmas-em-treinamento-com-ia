@@ -13,6 +13,7 @@ import {
   TrendingUp,
   AlertCircle,
   RefreshCw,
+  LogOut,
 } from 'lucide-react';
 import { ClassGroup, DailyReport, AttendanceStatus } from '@/types';
 
@@ -151,6 +152,16 @@ export default function ViewerPage() {
             <span className="text-[10px] text-dark-muted hidden sm:block">
               {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </span>
+            <button
+              onClick={async () => {
+                await fetch('/api/auth/viewer-logout', { method: 'POST' });
+                window.location.href = '/viewer/login';
+              }}
+              className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-900/50 rounded-lg transition-colors"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>

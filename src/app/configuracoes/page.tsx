@@ -15,6 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { AppSettings } from '@/types';
+import SecuritySettings from '@/components/SecuritySettings';
 
 export default function ConfiguracoesPage() {
   const [geminiApiKey, setGeminiApiKey] = useState('');
@@ -257,6 +258,8 @@ export default function ConfiguracoesPage() {
           </button>
         </div>
       </form>
+
+      <SecuritySettings />
     </div>
   );
 }

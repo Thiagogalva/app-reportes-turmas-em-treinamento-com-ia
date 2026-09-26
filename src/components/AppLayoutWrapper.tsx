@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useSyncExternalStore } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
-import { Menu, Bot, Calendar } from 'lucide-react';
+import { Menu, Bot, Calendar, LogOut } from 'lucide-react';
 
 const subscribeNoop = () => () => {};
 
@@ -18,6 +19,7 @@ export default function AppLayoutWrapper({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -26,6 +28,15 @@ export default function AppLayoutWrapper({
     formatToday,
     () => null,
   );
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.replace('/login');
+      router.refresh();
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-dark-bg text-dark-text antialiased">
@@ -68,6 +79,14 @@ export default function AppLayoutWrapper({
               <span className="capitalize min-w-[6.5rem]">{todayFormatted ?? '\u00A0'}</span>
             </div>
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sistema Online" />
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-xl bg-dark-card border border-dark-border text-dark-muted hover:text-white hover:border-red-600/50 transition-colors"
+              title="Sair"
+              aria-label="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </header>
 

@@ -125,6 +125,15 @@ export interface AppSettings {
   instructorDefaultName?: string;
   companyName?: string;
   emailFooterNote?: string;
+  viewerPasswordHash?: string; // senha simples e compartilhada, só para o /viewer
+}
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  name: string;
+  passwordHash: string;
+  createdAt: string;
 }
 
 export interface DatabaseSchema {
@@ -132,4 +141,5 @@ export interface DatabaseSchema {
   classes: ClassGroup[];
   reports: DailyReport[];
   settings: AppSettings;
+  users: AuthUser[];
 }
