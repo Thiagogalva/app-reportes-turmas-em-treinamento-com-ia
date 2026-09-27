@@ -56,7 +56,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
 }
 
 // ==================== SESSÕES (JWT, compatível com Edge/middleware) ====================
-type SessionPayload = { scope: 'admin'; sub: string; username: string; name: string };
+type SessionPayload = { scope: 'admin'; sub: string; username: string; name: string; role: 'admin' | 'instrutor' };
 type ViewerPayload = { scope: 'viewer' };
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
@@ -101,6 +101,7 @@ export async function ensureBootstrap(): Promise<void> {
       username: process.env.ADMIN_USERNAME.trim().toLowerCase(),
       name: process.env.ADMIN_NAME?.trim() || 'Administrador',
       passwordHash,
+      role: 'admin',
       createdAt: new Date().toISOString(),
     };
     db.users = [...(db.users || []), newUser];

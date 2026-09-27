@@ -133,6 +133,7 @@ export interface AuthUser {
   username: string;
   name: string;
   passwordHash: string;
+  role: 'admin' | 'instrutor';
   createdAt: string;
 }
 

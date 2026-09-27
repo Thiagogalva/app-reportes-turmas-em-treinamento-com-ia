@@ -13,14 +13,19 @@ function getSecretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-async function isValidToken(token: string | undefined, expectedScope: string): Promise<boolean> {
-  if (!token) return false;
+async function decodeToken(token: string | undefined): Promise<any | null> {
+  if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
-    return payload.scope === expectedScope;
+    return payload;
   } catch {
-    return false;
+    return null;
   }
+}
+
+async function isValidToken(token: string | undefined, expectedScope: string): Promise<boolean> {
+  const payload = await decodeToken(token);
+  return payload?.scope === expectedScope;
 }
 
 // Rotas de API que só fazem LEITURA e que o /viewer precisa consultar.
@@ -33,6 +38,18 @@ export async function middleware(request: NextRequest) {
   const viewerToken = request.cookies.get(VIEWER_COOKIE)?.value;
 
   const hasAdminSession = await isValidToken(sessionToken, 'admin');
+
+  // ─── Área de gestão de usuários — exige perfil "admin", não só sessão válida ─
+  if (pathname.startsWith('/usuarios') || pathname.startsWith('/api/auth/users')) {
+    const payload = await decodeToken(sessionToken);
+    if (payload?.scope === 'admin' && payload?.role === 'admin') {
+      return NextResponse.next();
+    }
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ success: false, error: 'Acesso restrito a administradores.' }, { status: 403 });
+    }
+    return NextResponse.redirect(new URL(hasAdminSession ? '/' : '/login', request.url));
+  }
 
   // ─── Páginas e API públicas de autenticação ───────────────────────────────
   if (

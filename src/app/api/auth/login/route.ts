@@ -25,9 +25,10 @@ export async function POST(request: NextRequest) {
       sub: user.id,
       username: user.username,
       name: user.name,
+      role: user.role || 'instrutor',
     });
 
-    const response = NextResponse.json({ success: true, data: { username: user.username, name: user.name } });
+    const response = NextResponse.json({ success: true, data: { username: user.username, name: user.name, role: user.role } });
     response.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

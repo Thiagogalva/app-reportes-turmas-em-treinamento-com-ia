@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, KeyRound, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 
 function StatusBanner({ status }: { status: { text: string; type: 'success' | 'error' } | null }) {
@@ -22,6 +22,17 @@ function StatusBanner({ status }: { status: { text: string; type: 'success' | 'e
 }
 
 export default function SecuritySettings() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data?.role === 'admin') setIsAdmin(true);
+      })
+      .catch(() => {});
+  }, []);
+
   // Trocar a própria senha de login
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -126,7 +137,8 @@ export default function SecuritySettings() {
         </button>
       </form>
 
-      {/* Trocar senha do viewer */}
+      {/* Trocar senha do viewer — só para administradores */}
+      {isAdmin && (
       <form onSubmit={handleChangeViewerPassword} className="space-y-3">
         <div className="flex items-center gap-1.5 text-xs font-bold text-dark-muted">
           <Users className="w-3.5 h-3.5" />
@@ -155,6 +167,7 @@ export default function SecuritySettings() {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

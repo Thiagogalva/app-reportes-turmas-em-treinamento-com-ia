@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -14,7 +14,8 @@ import {
   ChevronRight,
   X,
   Bot,
-  Layers
+  Layers,
+  ShieldCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +32,16 @@ export default function Sidebar({
   setIsMobileOpen
 }: SidebarProps) {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data?.role === 'admin') setIsAdmin(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const navItems = [
     {
@@ -69,6 +80,12 @@ export default function Sidebar({
       icon: Settings,
       desc: 'Chaves e Destinatários'
     },
+    ...(isAdmin ? [{
+      label: 'Usuários',
+      href: '/usuarios',
+      icon: ShieldCheck,
+      desc: 'Criar contas e senhas'
+    }] : []),
   ];
 
   return (

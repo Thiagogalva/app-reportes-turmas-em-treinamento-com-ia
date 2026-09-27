@@ -6,8 +6,8 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get(SESSION_COOKIE)?.value;
     const session = token ? await verifyToken<SessionPayload>(token) : null;
-    if (!session || session.scope !== 'admin') {
-      return NextResponse.json({ success: false, error: 'Não autenticado.' }, { status: 401 });
+    if (!session || session.scope !== 'admin' || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Acesso restrito a administradores.' }, { status: 403 });
     }
 
     const { newPassword } = await request.json();
