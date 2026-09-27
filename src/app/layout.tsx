@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import AppLayoutWrapper from "@/components/AppLayoutWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "TreinaReport AI - Gestão de Treinamento",
@@ -41,6 +42,7 @@ export default function RootLayout({
       </head>
       <body className="bg-dark-bg text-dark-text antialiased">
         <AppLayoutWrapper>{children}</AppLayoutWrapper>
+        <Analytics />
       </body>
     </html>
   );
