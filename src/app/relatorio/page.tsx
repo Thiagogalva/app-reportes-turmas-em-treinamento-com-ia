@@ -18,7 +18,8 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CalendarDays
 } from 'lucide-react';
 import {
   ClassGroup,
@@ -50,6 +51,7 @@ export default function NovoRelatorioPage() {
   const [systemEvidences, setSystemEvidences] = useState<Record<string, SystemEvidence>>({});
   const [evidenceUploading, setEvidenceUploading] = useState<string | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [scheduleTogglingId, setScheduleTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -259,6 +261,26 @@ export default function NovoRelatorioPage() {
     setSystemsNotes(`Todos os sistemas do segmento ${currentSegment?.name || 'Bradesco'} testados e 100% aprovados.`);
     setSelectedSystemTags([]);
     setSystemEvidences({});
+  };
+
+  const handleToggleScheduleDay = async (dayId: string, completed: boolean) => {
+    if (!selectedClassId) return;
+    setScheduleTogglingId(dayId);
+    try {
+      const res = await fetch(`/api/classes/${selectedClassId}/schedule`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dayId, completed }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClasses(prev => prev.map(c => c.id === selectedClassId ? json.data : c));
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar cronograma:', err);
+    } finally {
+      setScheduleTogglingId(null);
+    }
   };
 
   const handleEvidenceUpload = async (systemId: string, systemName: string, file: File | null) => {
@@ -531,6 +553,46 @@ export default function NovoRelatorioPage() {
           </div>
         </div>
       </div>
+
+      {/* SEÇÃO — CRONOGRAMA DA TURMA */}
+      {selectedClass && selectedClass.schedule && selectedClass.schedule.length > 0 && (
+        <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm space-y-3">
+          <h2 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-bradesco-500" />
+            Cronograma da Turma
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {selectedClass.schedule.map(day => {
+              const isLate = !day.completed && day.plannedDate < date;
+              const isToday = day.plannedDate === date;
+              return (
+                <button
+                  key={day.id}
+                  type="button"
+                  onClick={() => handleToggleScheduleDay(day.id, !day.completed)}
+                  disabled={scheduleTogglingId === day.id}
+                  className={`px-3 py-2 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors disabled:opacity-50 ${
+                    day.completed
+                      ? 'bg-emerald-950/50 border-emerald-800 text-emerald-300'
+                      : isLate
+                        ? 'bg-red-950/50 border-red-800 text-red-300'
+                        : isToday
+                          ? 'bg-sky-950/50 border-sky-700 text-sky-300'
+                          : 'bg-dark-bg border-dark-border text-dark-muted'
+                  }`}
+                  title={`Planejado para ${day.plannedDate}${day.completed ? ` — concluído em ${day.completedDate}` : ''}`}
+                >
+                  {day.completed ? <Check className="w-3 h-3" /> : <CalendarDays className="w-3 h-3" />}
+                  <span>Dia {day.dayNumber}: {day.title}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-dark-muted">
+            Clique em um dia para marcar como concluído. Dias em vermelho estão atrasados em relação ao planejado.
+          </p>
+        </div>
+      )}
 
       {/* SEÇÃO 2: Status dos Sistemas dos Operadores (Inteligente por Segmento) */}
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm space-y-4">

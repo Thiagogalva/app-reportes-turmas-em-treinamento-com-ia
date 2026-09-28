@@ -76,7 +76,7 @@ export function evaluateSlaImpact(
   };
 }
 
-function daysBetween(a: string, b: string): number {
+export function daysBetween(a: string, b: string): number {
   const [ay, am, ad] = a.split('-').map(Number);
   const [by, bm, bd] = b.split('-').map(Number);
   const dateA = Date.UTC(ay, am - 1, ad);

@@ -31,6 +31,15 @@ export interface Segment {
   updatedAt: string;
 }
 
+export interface ScheduleDay {
+  id: string;
+  dayNumber: number;        // Dia 1, Dia 2, Dia 3...
+  title: string;            // Ex: "Apresentações", "Sistema GEO - Teórico"
+  plannedDate: string;      // YYYY-MM-DD — data em que deveria ser concluído
+  completed: boolean;
+  completedDate?: string;   // YYYY-MM-DD — data em que foi de fato marcado como concluído
+}
+
 export interface ClassGroup {
   id: string;
   name: string;
@@ -45,6 +54,7 @@ export interface ClassGroup {
   students: Student[];
   systemsValidated?: boolean; // Se os sistemas de todos os operadores já foram testados e estão 100% OK
   systemsValidationDate?: string;
+  schedule?: ScheduleDay[];   // Cronograma dia-a-dia planejado para a turma
   createdAt: string;
   updatedAt: string;
 }

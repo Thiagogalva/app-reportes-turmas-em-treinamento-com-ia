@@ -378,6 +378,30 @@ export async function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updat
   return newClass;
 }
 
+/**
+ * Marca (ou desmarca) um dia do cronograma de uma turma como concluído.
+ * Ação operacional do dia a dia — diferente de editar dados da turma, por
+ * isso não é restrita a administradores (qualquer instrutor logado pode usar
+ * ao preencher o reporte diário).
+ */
+export async function toggleScheduleDay(classId: string, dayId: string, completed: boolean): Promise<ClassGroup | null> {
+  const db = await readDb();
+  const classIndex = db.classes.findIndex(c => c.id === classId);
+  if (classIndex === -1) return null;
+
+  const classGroup = db.classes[classIndex];
+  const schedule = (classGroup.schedule || []).map(day =>
+    day.id === dayId
+      ? { ...day, completed, completedDate: completed ? new Date().toISOString().slice(0, 10) : undefined }
+      : day
+  );
+
+  const updated: ClassGroup = { ...classGroup, schedule, updatedAt: new Date().toISOString() };
+  db.classes[classIndex] = updated;
+  await writeDb(db);
+  return updated;
+}
+
 export async function deleteClass(id: string): Promise<boolean> {
   const db = await readDb();
   const initialLength = db.classes.length;

@@ -14,9 +14,13 @@ import {
   Info,
   Layers,
   FileSpreadsheet,
+  CalendarDays,
+  Sparkles,
 } from 'lucide-react';
-import { ClassGroup, ClassStatus, Student, Segment } from '@/types';
+import { ClassGroup, ClassStatus, Student, Segment, ScheduleDay } from '@/types';
 import OperatorImportModal from '@/components/OperatorImportModal';
+import { generateDefaultSchedule } from '@/lib/schedule';
+import { addDays } from '@/lib/sla';
 
 export default function TurmasPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -48,6 +52,8 @@ export default function TurmasPage() {
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [newDayTitle, setNewDayTitle] = useState('');
 
   // Novo operador rápido
   const [newStudentName, setNewStudentName] = useState('');
@@ -100,6 +106,7 @@ export default function TurmasPage() {
     setEndDate('');
     setDescription('');
     setStudents([]);
+    setSchedule([]);
     setShowBulkAdd(false);
     setIsModalOpen(true);
   };
@@ -115,6 +122,7 @@ export default function TurmasPage() {
     setEndDate(c.endDate || '');
     setDescription(c.description || '');
     setStudents(c.students || []);
+    setSchedule(c.schedule || []);
     setShowBulkAdd(false);
     setIsModalOpen(true);
   };
@@ -213,6 +221,7 @@ export default function TurmasPage() {
       endDate: endDate || undefined,
       description: description.trim() || undefined,
       students,
+      schedule,
     };
 
     try {
@@ -653,6 +662,102 @@ export default function TurmasPage() {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full text-xs font-medium text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
                   />
+                </div>
+              </div>
+
+              {/* SEÇÃO DE CRONOGRAMA DIA-A-DIA DA TURMA */}
+              <div className="border-t border-dark-border pt-4 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <CalendarDays className="w-4 h-4 text-bradesco-500" />
+                      Cronograma da Turma ({schedule.length} dia{schedule.length !== 1 ? 's' : ''})
+                    </h3>
+                    <p className="text-[11px] text-dark-muted">
+                      Define o plano dia a dia. Coordenadores acompanham desvios no Dashboard (gráfico Gantt).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!startDate) { alert('Defina a data de início da turma primeiro.'); return; }
+                      const days = prompt('Quantos dias de treinamento (gera um item por dia)?', '5');
+                      const n = Number(days);
+                      if (!n || n <= 0) return;
+                      setSchedule(generateDefaultSchedule(startDate, n));
+                    }}
+                    className="px-3 py-1.5 bg-dark-card border border-dark-border text-white rounded-xl text-[11px] font-bold hover:bg-dark-border flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-bradesco-500" />
+                    <span>Gerar Automático</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newDayTitle}
+                    onChange={(e) => setNewDayTitle(e.target.value)}
+                    placeholder="Título do dia (ex: Apresentações, Sistema GEO...)"
+                    className="flex-1 text-xs p-2.5 rounded-xl border border-dark-border bg-dark-input text-white focus:ring-2 focus:ring-bradesco-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newDayTitle.trim()) return;
+                      const nextDayNumber = schedule.length + 1;
+                      const lastDate = schedule.length > 0 ? schedule[schedule.length - 1].plannedDate : startDate;
+                      const plannedDate = schedule.length > 0 ? addDays(lastDate, 1) : (startDate || new Date().toISOString().slice(0, 10));
+                      setSchedule(prev => [...prev, {
+                        id: `sched-${Date.now()}`,
+                        dayNumber: nextDayNumber,
+                        title: newDayTitle.trim(),
+                        plannedDate,
+                        completed: false,
+                      }]);
+                      setNewDayTitle('');
+                    }}
+                    className="px-4 py-2 bg-bradesco-600 text-white rounded-xl text-xs font-bold hover:bg-bradesco-700 flex items-center gap-1 shadow-md shadow-bradesco-600/30"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Adicionar Dia</span>
+                  </button>
+                </div>
+
+                <div className="max-h-56 overflow-y-auto space-y-1.5 border border-dark-border rounded-xl p-2 bg-dark-input">
+                  {schedule.length > 0 ? (
+                    schedule.map((day, i) => (
+                      <div key={day.id} className="flex items-center gap-2 p-2 bg-dark-card rounded-lg border border-dark-border text-xs">
+                        <span className="text-dark-muted font-mono w-10 flex-shrink-0">Dia {day.dayNumber}</span>
+                        <input
+                          type="text"
+                          value={day.title}
+                          onChange={(e) => setSchedule(prev => prev.map(d => d.id === day.id ? { ...d, title: e.target.value } : d))}
+                          className="flex-1 min-w-0 bg-transparent text-white text-xs focus:outline-none border-b border-transparent focus:border-bradesco-500"
+                        />
+                        <input
+                          type="date"
+                          value={day.plannedDate}
+                          onChange={(e) => setSchedule(prev => prev.map(d => d.id === day.id ? { ...d, plannedDate: e.target.value } : d))}
+                          className="bg-dark-bg text-dark-muted text-[10px] rounded px-1.5 py-1 border border-dark-border flex-shrink-0"
+                        />
+                        {day.completed && (
+                          <span className="text-[9px] text-emerald-400 font-bold flex-shrink-0">✓ Concluído</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setSchedule(prev => prev.filter(d => d.id !== day.id))}
+                          className="text-dark-muted hover:text-bradesco-400 p-1 flex-shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-xs text-dark-muted">
+                      Nenhum dia cadastrado ainda. Use "Gerar Automático" ou adicione manualmente.
+                    </div>
+                  )}
                 </div>
               </div>
 
