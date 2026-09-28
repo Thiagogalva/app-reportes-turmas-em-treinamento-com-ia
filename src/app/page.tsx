@@ -33,6 +33,7 @@ import {
 import { ClassGroup, DailyReport, AiGeneratedReport } from '@/types';
 import { exportReportsToExcel, exportSingleReportToPdf } from '@/lib/export-helpers';
 import AiAgentModal from '@/components/AiAgentModal';
+import SlaImpactCard from '@/components/SlaImpactCard';
 
 export default function DashboardPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -244,6 +245,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <SlaImpactCard />
+
       {/* Top Banner & Seletor de Turma Ativa */}
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 shadow-xl border border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

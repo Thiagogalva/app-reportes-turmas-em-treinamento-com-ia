@@ -17,7 +17,8 @@ import {
   RotateCcw,
   Check,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Image as ImageIcon
 } from 'lucide-react';
 import {
   ClassGroup,
@@ -28,9 +29,11 @@ import {
   StudentPerformance,
   AiGeneratedReport,
   Segment,
-  OperatorSystemTestResult
+  OperatorSystemTestResult,
+  SystemEvidence
 } from '@/types';
 import AiAgentModal from '@/components/AiAgentModal';
+import { compressImageFile } from '@/lib/image-compress';
 
 export default function NovoRelatorioPage() {
   const router = useRouter();
@@ -44,6 +47,18 @@ export default function NovoRelatorioPage() {
   const [systemsNotes, setSystemsNotes] = useState<string>('Sistemas homologados e 100% operacionais.');
   const [selectedSystemTags, setSelectedSystemTags] = useState<string[]>([]);
   const [reportHasSystemIncident, setReportHasSystemIncident] = useState<boolean>(false);
+  const [systemEvidences, setSystemEvidences] = useState<Record<string, SystemEvidence>>({});
+  const [evidenceUploading, setEvidenceUploading] = useState<string | null>(null);
+  const [currentUserName, setCurrentUserName] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data?.name) setCurrentUserName(json.data.name);
+      })
+      .catch(() => {});
+  }, []);
   const [showSystemTestGrid, setShowSystemTestGrid] = useState<boolean>(false);
   const [operatorChecks, setOperatorChecks] = useState<OperatorSystemTestResult[]>([]);
 
@@ -242,6 +257,32 @@ export default function NovoRelatorioPage() {
     })));
     setSystemsOperational(true);
     setSystemsNotes(`Todos os sistemas do segmento ${currentSegment?.name || 'Bradesco'} testados e 100% aprovados.`);
+    setSelectedSystemTags([]);
+    setSystemEvidences({});
+  };
+
+  const handleEvidenceUpload = async (systemId: string, systemName: string, file: File | null) => {
+    if (!file) return;
+    setEvidenceUploading(systemId);
+    try {
+      const imageDataUrl = await compressImageFile(file);
+      const now = new Date();
+      const expires = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+      const evidence: SystemEvidence = {
+        id: `ev-${Date.now()}-${systemId}`,
+        systemId,
+        systemName,
+        imageDataUrl,
+        uploadedAt: now.toISOString(),
+        expiresAt: expires.toISOString(),
+        uploadedBy: currentUserName || undefined,
+      };
+      setSystemEvidences(prev => ({ ...prev, [systemId]: evidence }));
+    } catch (err: any) {
+      alert(err.message || 'Erro ao processar a imagem.');
+    } finally {
+      setEvidenceUploading(null);
+    }
   };
 
   // Validação estrita
@@ -254,6 +295,18 @@ export default function NovoRelatorioPage() {
 
     if (!systemsOperational && (!systemsNotes || systemsNotes.trim().length < 5)) {
       errors.push('Como os sistemas apresentaram falhas, informe uma descrição técnica do problema.');
+    }
+
+    if (!systemsOperational) {
+      if (selectedSystemTags.length === 0) {
+        errors.push('Selecione qual(is) sistema(s) apresentaram falha.');
+      }
+      selectedSystemTags.forEach(sysId => {
+        if (!systemEvidences[sysId]) {
+          const sysName = currentSegment?.systems.find(s => s.id === sysId)?.name || sysId;
+          errors.push(`Anexe uma evidência (print/foto) do erro do sistema "${sysName}".`);
+        }
+      });
     }
 
     // Regra Crítica: Justificativa obrigatória para Alunos Abaixo do Esperado
@@ -281,6 +334,7 @@ export default function NovoRelatorioPage() {
         operational: systemsOperational,
         notes: systemsNotes,
         affectedSystems: selectedSystemTags,
+        evidences: selectedSystemTags.map(id => systemEvidences[id]).filter(Boolean),
         operatorChecks: showSystemTestGrid ? operatorChecks : undefined,
         systemsAlreadyValidated: selectedClass?.systemsValidated && !reportHasSystemIncident,
       },
@@ -550,6 +604,8 @@ export default function NovoRelatorioPage() {
                     setSystemsOperational(true);
                     setReportHasSystemIncident(false);
                     setSystemsNotes(`Todos os sistemas do segmento ${currentSegment?.name} testados e funcionando com normalidade.`);
+                    setSelectedSystemTags([]);
+                    setSystemEvidences({});
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
                     systemsOperational
@@ -653,6 +709,78 @@ export default function NovoRelatorioPage() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Sistemas Afetados + Evidência (obrigatória por sistema marcado) */}
+            {!systemsOperational && (
+            <div className="bg-dark-card p-4 rounded-xl border border-bradesco-900/50 space-y-3">
+              <div>
+                <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-bradesco-500" />
+                  Quais sistemas apresentaram falha?
+                </h3>
+                <p className="text-[10px] text-dark-muted">
+                  Selecione o(s) sistema(s) e anexe uma captura de tela do erro para cada um. A evidência fica disponível para outros administradores por 5 dias.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {(currentSegment?.systems || []).map(sys => {
+                  const active = selectedSystemTags.includes(sys.id);
+                  return (
+                    <button
+                      key={sys.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSystemTags(prev =>
+                          active ? prev.filter(id => id !== sys.id) : [...prev, sys.id]
+                        );
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
+                        active
+                          ? 'bg-bradesco-950 text-bradesco-400 border-bradesco-700'
+                          : 'bg-dark-bg text-dark-muted border-dark-border hover:text-white'
+                      }`}
+                    >
+                      {sys.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedSystemTags.length > 0 && (
+                <div className="space-y-3 pt-2 border-t border-dark-border">
+                  {selectedSystemTags.map(sysId => {
+                    const sys = currentSegment?.systems.find(s => s.id === sysId);
+                    if (!sys) return null;
+                    const evidence = systemEvidences[sysId];
+                    return (
+                      <div key={sysId} className="flex items-start gap-3 bg-dark-bg p-3 rounded-lg border border-dark-border">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-white mb-1.5">{sys.name} — evidência do erro *</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleEvidenceUpload(sysId, sys.name, e.target.files?.[0] || null)}
+                            className="text-[10px] text-dark-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-bradesco-600 file:text-white hover:file:bg-bradesco-700 file:cursor-pointer cursor-pointer"
+                          />
+                          {evidenceUploading === sysId && (
+                            <p className="text-[10px] text-dark-muted mt-1">Comprimindo imagem...</p>
+                          )}
+                        </div>
+                        {evidence && (
+                          <img
+                            src={evidence.imageDataUrl}
+                            alt={`Evidência ${sys.name}`}
+                            className="w-16 h-16 object-cover rounded-lg border border-dark-border flex-shrink-0"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             )}
 
             <div>

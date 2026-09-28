@@ -26,6 +26,7 @@ export interface Segment {
   name: string;             // ex: "Varejo", "Prime", "Cartões", "Financiamento"
   description?: string;
   systems: SegmentSystem[];
+  slaDays?: number;         // Quantos dias leva para os acessos (login/rede/cliente) serem liberados
   createdAt: string;
   updatedAt: string;
 }
@@ -62,12 +63,23 @@ export interface OperatorSystemTestResult {
   }[];
 }
 
+export interface SystemEvidence {
+  id: string;
+  systemId: string;
+  systemName: string;
+  imageDataUrl: string;   // imagem comprimida em base64 (data URI)
+  uploadedAt: string;
+  uploadedBy?: string;
+  expiresAt: string;      // uploadedAt + 5 dias — depois disso é removida automaticamente
+}
+
 export interface SystemStatusReport {
   operational: boolean;
   notes: string;
   affectedSystems?: string[];
   operatorChecks?: OperatorSystemTestResult[];
   systemsAlreadyValidated?: boolean; // Se aproveitou a validação prévia sem necessidade de retestar
+  evidences?: SystemEvidence[];
 }
 
 export interface StudentAttendance {

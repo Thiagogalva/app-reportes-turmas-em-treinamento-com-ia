@@ -13,7 +13,8 @@ import {
   Save,
   Check,
   ShieldCheck,
-  Info
+  Info,
+  Clock
 } from 'lucide-react';
 import { Segment, SegmentSystem } from '@/types';
 
@@ -27,6 +28,7 @@ export default function SegmentosPage() {
   const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
   const [segmentName, setSegmentName] = useState('');
   const [segmentDesc, setSegmentDesc] = useState('');
+  const [segmentSlaDays, setSegmentSlaDays] = useState('');
 
   // Modal de Sistema (Criar / Editar sistema do segmento)
   const [isSystemModalOpen, setIsSystemModalOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function SegmentosPage() {
     setEditingSegment(null);
     setSegmentName('');
     setSegmentDesc('');
+    setSegmentSlaDays('');
     setIsSegmentModalOpen(true);
   };
 
@@ -75,6 +78,7 @@ export default function SegmentosPage() {
     setEditingSegment(s);
     setSegmentName(s.name);
     setSegmentDesc(s.description || '');
+    setSegmentSlaDays(s.slaDays != null ? String(s.slaDays) : '');
     setIsSegmentModalOpen(true);
   };
 
@@ -86,6 +90,7 @@ export default function SegmentosPage() {
       ...(editingSegment ? { id: editingSegment.id, systems: editingSegment.systems } : { systems: [] }),
       name: segmentName.trim(),
       description: segmentDesc.trim(),
+      slaDays: segmentSlaDays.trim() ? Number(segmentSlaDays) : undefined,
     };
 
     try {
@@ -351,6 +356,19 @@ export default function SegmentosPage() {
                       {activeSegment.description}
                     </p>
                   )}
+                  <div className="mt-2">
+                    {activeSegment.slaDays ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-sky-950/50 text-sky-300 border border-sky-800/50">
+                        <Clock className="w-3 h-3" />
+                        SLA de acesso: {activeSegment.slaDays} dia(s) após o início da turma
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg bg-dark-bg text-dark-muted border border-dark-border">
+                        <Clock className="w-3 h-3" />
+                        Sem prazo de SLA configurado
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <button
@@ -481,6 +499,23 @@ export default function SegmentosPage() {
                   placeholder="Ex: Atendimento especializado a clientes de alta renda..."
                   className="w-full text-xs text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-dark-muted mb-1">
+                  Prazo de SLA para liberação de acessos (dias)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={segmentSlaDays}
+                  onChange={(e) => setSegmentSlaDays(e.target.value)}
+                  placeholder="Ex: 5"
+                  className="w-full text-xs font-medium text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
+                />
+                <p className="text-[10px] text-dark-muted mt-1">
+                  Quantos dias corridos, a partir do início da turma, levam para os acessos (login de rede/cliente) desse segmento serem liberados. Usado para calcular impacto de SLA no Dashboard e no Simulador.
+                </p>
               </div>
 
               <div className="pt-3 border-t border-dark-border flex items-center justify-end gap-2">

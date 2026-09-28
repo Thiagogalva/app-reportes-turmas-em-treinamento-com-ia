@@ -87,6 +87,17 @@ export async function verifyToken<T>(token: string): Promise<T | null> {
 export { SESSION_COOKIE, VIEWER_COOKIE, SESSION_MAX_AGE_SECONDS };
 export type { SessionPayload, ViewerPayload };
 
+/**
+ * Helper reutilizável para rotas de API: lê a sessão do cookie da requisição
+ * e retorna o payload se for uma sessão de admin válida, ou null.
+ */
+export async function getAdminSession(request: { cookies: { get: (name: string) => { value: string } | undefined } }): Promise<SessionPayload | null> {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const session = token ? await verifyToken<SessionPayload>(token) : null;
+  if (!session || session.scope !== 'admin') return null;
+  return session;
+}
+
 // ==================== BOOTSTRAP (primeiro admin + senha do viewer via env vars) ====================
 // Roda sob demanda (chamado pelas rotas de login) em vez de a cada leitura do banco,
 // para não gerar escrita extra em toda requisição.

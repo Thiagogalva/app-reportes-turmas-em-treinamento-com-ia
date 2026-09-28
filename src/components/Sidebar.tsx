@@ -15,7 +15,8 @@ import {
   X,
   Bot,
   Layers,
-  ShieldCheck
+  ShieldCheck,
+  Gauge
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -67,6 +68,12 @@ export default function Sidebar({
       href: '/turmas',
       icon: Users,
       desc: 'Ativas e Concluídas'
+    },
+    {
+      label: 'Simulador de SLA',
+      href: '/simulador-sla',
+      icon: Gauge,
+      desc: 'Impacto antes de criar a turma'
     },
     {
       label: 'Histórico',

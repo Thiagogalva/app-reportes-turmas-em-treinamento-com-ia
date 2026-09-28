@@ -23,6 +23,16 @@ export default function TurmasPage() {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [activeTab, setActiveTab] = useState<'EM_TREINAMENTO' | 'CONCLUIDA'>('EM_TREINAMENTO');
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data?.role === 'admin') setIsAdmin(true);
+      })
+      .catch(() => {});
+  }, []);
 
   // Modal de Criação / Edição de Turma
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -448,28 +458,33 @@ export default function TurmasPage() {
 
               {/* Ações do Card */}
               <div className="mt-5 pt-4 border-t border-dark-border flex items-center justify-between gap-2">
-                <button
-                  onClick={() => toggleClassStatus(c)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                    c.status === 'EM_TREINAMENTO'
-                      ? 'bg-dark-card hover:bg-dark-border text-amber-400 border border-amber-900/40'
-                      : 'bg-emerald-950/70 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/40'
-                  }`}
-                  title={c.status === 'EM_TREINAMENTO' ? 'Concluir turma' : 'Reativar turma'}
-                >
-                  {c.status === 'EM_TREINAMENTO' ? (
-                    <>
-                      <Archive className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Concluir Turma</span>
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Reativar no Dashboard</span>
-                    </>
-                  )}
-                </button>
+                {isAdmin ? (
+                  <button
+                    onClick={() => toggleClassStatus(c)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                      c.status === 'EM_TREINAMENTO'
+                        ? 'bg-dark-card hover:bg-dark-border text-amber-400 border border-amber-900/40'
+                        : 'bg-emerald-950/70 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/40'
+                    }`}
+                    title={c.status === 'EM_TREINAMENTO' ? 'Concluir turma' : 'Reativar turma'}
+                  >
+                    {c.status === 'EM_TREINAMENTO' ? (
+                      <>
+                        <Archive className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Concluir Turma</span>
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Reativar no Dashboard</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-dark-muted italic">Somente administradores podem alterar esta turma</span>
+                )}
 
+                {isAdmin && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => openEditModal(c)}
@@ -487,6 +502,7 @@ export default function TurmasPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
+                )}
               </div>
             </div>
           ))}

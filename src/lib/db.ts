@@ -201,6 +201,23 @@ function migrateUserRoles(users: any[] | undefined): any[] {
   return users.map(u => (u.role ? u : { ...u, role: 'admin' }));
 }
 
+// Evidências de erro (prints anexados aos reportes) expiram após 5 dias, para
+// não acumular imagens indefinidamente no banco de dados.
+function purgeExpiredEvidences(reports: any[] | undefined): { reports: any[]; changed: boolean } {
+  if (!reports) return { reports: [], changed: false };
+  const now = Date.now();
+  let changed = false;
+  const cleaned = reports.map(r => {
+    const evidences = r?.systemsStatus?.evidences;
+    if (!evidences || evidences.length === 0) return r;
+    const kept = evidences.filter((ev: any) => !ev.expiresAt || new Date(ev.expiresAt).getTime() > now);
+    if (kept.length === evidences.length) return r;
+    changed = true;
+    return { ...r, systemsStatus: { ...r.systemsStatus, evidences: kept } };
+  });
+  return { reports: cleaned, changed };
+}
+
 export async function readDb(): Promise<DatabaseSchema> {
   if (sql) {
     await ensurePostgresSchema();
@@ -209,6 +226,12 @@ export async function readDb(): Promise<DatabaseSchema> {
       const parsed = (rows[0]?.data ?? INITIAL_DATA) as DatabaseSchema;
       if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
       parsed.users = migrateUserRoles(parsed.users);
+      const { reports, changed } = purgeExpiredEvidences(parsed.reports);
+      parsed.reports = reports;
+      if (changed) {
+        // Persiste a limpeza para realmente liberar espaço no banco.
+        await writeDb(parsed);
+      }
       return parsed;
     } catch (error) {
       console.error('Erro ao ler banco de dados Postgres:', error);
@@ -223,6 +246,11 @@ export async function readDb(): Promise<DatabaseSchema> {
     const parsed = JSON.parse(raw) as DatabaseSchema;
     if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
     parsed.users = migrateUserRoles(parsed.users);
+    const { reports, changed } = purgeExpiredEvidences(parsed.reports);
+    parsed.reports = reports;
+    if (changed) {
+      await writeDb(parsed);
+    }
     return parsed;
   } catch (error) {
     console.error('Erro ao ler banco de dados JSON:', error);

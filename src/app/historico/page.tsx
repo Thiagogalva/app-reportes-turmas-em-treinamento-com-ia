@@ -11,7 +11,8 @@ import {
   Trash2,
   Eye,
   X,
-  FileText
+  FileText,
+  Image as ImageIcon
 } from 'lucide-react';
 import { DailyReport, ClassGroup, AiGeneratedReport } from '@/types';
 import { exportReportsToExcel, exportSingleReportToPdf } from '@/lib/export-helpers';
@@ -342,6 +343,35 @@ export default function HistoricoPage() {
                   Status: <strong>{viewingReport.systemsStatus.operational ? '100% Operacional' : 'Com Problemas'}</strong>
                 </p>
                 <p className="text-dark-muted">{viewingReport.systemsStatus.notes}</p>
+
+                {viewingReport.systemsStatus.evidences && viewingReport.systemsStatus.evidences.length > 0 && (
+                  <div className="pt-2 mt-2 border-t border-dark-border space-y-2">
+                    <span className="font-bold text-bradesco-400 text-[11px] flex items-center gap-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Evidências anexadas ({viewingReport.systemsStatus.evidences.length})
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {viewingReport.systemsStatus.evidences.map(ev => (
+                        <a
+                          key={ev.id}
+                          href={ev.imageDataUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                          title={`${ev.systemName} — enviado ${ev.uploadedBy ? `por ${ev.uploadedBy}` : ''} em ${new Date(ev.uploadedAt).toLocaleString('pt-BR')}`}
+                        >
+                          <img
+                            src={ev.imageDataUrl}
+                            alt={`Evidência ${ev.systemName}`}
+                            className="w-20 h-20 object-cover rounded-lg border border-dark-border hover:border-bradesco-500 transition-colors"
+                          />
+                          <span className="block text-[9px] text-dark-muted text-center mt-0.5 truncate w-20">{ev.systemName}</span>
+                        </a>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-dark-muted italic">Evidências ficam disponíveis por 5 dias após o envio.</p>
+                  </div>
+                )}
               </div>
 
               {/* Tópicos */}
