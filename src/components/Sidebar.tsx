@@ -16,7 +16,8 @@ import {
   Bot,
   Layers,
   ShieldCheck,
-  Gauge
+  Gauge,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -74,6 +75,12 @@ export default function Sidebar({
       href: '/simulador-sla',
       icon: Gauge,
       desc: 'Impacto antes de criar a turma'
+    },
+    {
+      label: 'Migração de Operadores',
+      href: '/migracoes',
+      icon: ArrowRightLeft,
+      desc: 'Matriz de SLA entre segmentos'
     },
     {
       label: 'Histórico',

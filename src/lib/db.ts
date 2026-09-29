@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { neon } from '@neondatabase/serverless';
-import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings } from '@/types';
+import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule } from '@/types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -168,7 +168,83 @@ const INITIAL_DATA: DatabaseSchema = {
     defaultRecipients: 'gestao.treinamento@bradesco.com.br, coordenacao@bradesco.com.br',
     emailFooterNote: 'Reporte gerado pelo Sistema TreinaReport AI - Padrão Bradesco.'
   },
-  users: []
+  users: [],
+  migrationRules: [
+  { id: "mig-1", origin: "CAC Varejo", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-2", origin: "CAC Varejo", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-3", origin: "CAC Varejo", destination: "Casos Especiais BKO", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-4", origin: "CAC Varejo", destination: "BNDES", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-5", origin: "CAC Varejo", destination: "Fone Fácil PF", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-6", origin: "CAC Varejo", destination: "Joy", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-7", origin: "CAC Varejo", destination: "Prime", chamadoSlaDays: 16, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-8", origin: "CAC Varejo", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-9", origin: "CAC Varejo", destination: "PJ Corp", chamadoSlaDays: 16, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-10", origin: "CAC Varejo", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-11", origin: "CAC Varejo", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-12", origin: "CAC Varejo", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-13", origin: "CAC PJ", destination: "Alto Valor", chamadoSlaDays: 16, trainingSlaDays: 26, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-14", origin: "CAC PJ", destination: "Casos Especiais BKO", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-15", origin: "CAC PJ", destination: "BNDES", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-16", origin: "CAC PJ", destination: "Fone Fácil PF", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-17", origin: "CAC PJ", destination: "Joy", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-18", origin: "CAC PJ", destination: "Prime", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-19", origin: "CAC PJ", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-20", origin: "CAC PJ", destination: "PJ Corp", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-21", origin: "CAC PJ", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-22", origin: "CAC PJ", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-23", origin: "CAC PJ", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-24", origin: "BNDES", destination: "Alto Valor", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-25", origin: "BNDES", destination: "Casos Especiais BKO", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-26", origin: "BNDES", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-27", origin: "BNDES", destination: "Fone Fácil PF", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-28", origin: "BNDES", destination: "Joy", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-29", origin: "BNDES", destination: "Prime", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-30", origin: "BNDES", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-31", origin: "BNDES", destination: "PJ Corp", chamadoSlaDays: 16, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-32", origin: "BNDES", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-33", origin: "BNDES", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-34", origin: "BNDES", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-35", origin: "Fone Fácil PF", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 27, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-36", origin: "Fone Fácil PF", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 27, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-37", origin: "Fone Fácil PF", destination: "Casos Especiais BKO", chamadoSlaDays: 21, trainingSlaDays: 30, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-38", origin: "Fone Fácil PF", destination: "BNDES", chamadoSlaDays: 21, trainingSlaDays: 27, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-39", origin: "Fone Fácil PF", destination: "Joy", chamadoSlaDays: 16, trainingSlaDays: 7, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-40", origin: "Fone Fácil PF", destination: "Prime", chamadoSlaDays: 16, trainingSlaDays: 3, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-41", origin: "Fone Fácil PF", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-42", origin: "Fone Fácil PF", destination: "PJ Corp", chamadoSlaDays: 16, trainingSlaDays: null, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-43", origin: "Fone Fácil PF", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-44", origin: "Fone Fácil PF", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-45", origin: "Fone Fácil PF", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-46", origin: "Fone Fácil PF", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-47", origin: "Fone Fácil PF", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 40, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-48", origin: "Joy", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 40, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-49", origin: "Prime", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 40, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-50", origin: "Chat", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 40, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-51", origin: "PJ Corp", destination: "Alto Valor", chamadoSlaDays: 21, trainingSlaDays: 40, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-52", origin: "Fone Fácil PF", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 16, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-53", origin: "Joy", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 16, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-54", origin: "Prime", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 16, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-55", origin: "Chat", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 16, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-56", origin: "PJ Corp", destination: "CAC Varejo", chamadoSlaDays: 21, trainingSlaDays: 16, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-57", origin: "Fone Fácil PF", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-58", origin: "Joy", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-59", origin: "Prime", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-60", origin: "Chat", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-61", origin: "PJ Corp", destination: "CAC PJ", chamadoSlaDays: 21, trainingSlaDays: 23, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-62", origin: "Prime", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-63", origin: "Joy", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 21, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-64", origin: "PJ Corp", destination: "Chat", chamadoSlaDays: 21, trainingSlaDays: 31, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-65", origin: "Alto Valor", destination: "PAF IN/OUT", chamadoSlaDays: 21, trainingSlaDays: 17, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-66", origin: "Alto Valor", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-67", origin: "Alto Valor", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-68", origin: "Alto Valor", destination: "PAF Out Bradescard", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-69", origin: "PAF In", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-70", origin: "PAF In", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-71", origin: "PAF Out", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-72", origin: "PAF Out", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-73", origin: "PAF Out Bradescard", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  { id: "mig-74", origin: "PAF Out Bradescard", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
+  ]
 };
 
 function ensureLocalFileDbExists(): void {
@@ -226,6 +302,7 @@ export async function readDb(): Promise<DatabaseSchema> {
       const parsed = (rows[0]?.data ?? INITIAL_DATA) as DatabaseSchema;
       if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
       parsed.users = migrateUserRoles(parsed.users);
+      if (!parsed.migrationRules) parsed.migrationRules = [];
       const { reports, changed } = purgeExpiredEvidences(parsed.reports);
       parsed.reports = reports;
       if (changed) {
@@ -246,6 +323,7 @@ export async function readDb(): Promise<DatabaseSchema> {
     const parsed = JSON.parse(raw) as DatabaseSchema;
     if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
     parsed.users = migrateUserRoles(parsed.users);
+    if (!parsed.migrationRules) parsed.migrationRules = [];
     const { reports, changed } = purgeExpiredEvidences(parsed.reports);
     parsed.reports = reports;
     if (changed) {
@@ -491,4 +569,50 @@ export async function updateSettings(settings: Partial<AppSettings>): Promise<Ap
   };
   await writeDb(db);
   return db.settings;
+}
+
+// ==================== MATRIZ DE MIGRAÇÃO (SLA Chamado + Treinamento) ====================
+export async function getMigrationRules(): Promise<MigrationSlaRule[]> {
+  const db = await readDb();
+  return db.migrationRules || [];
+}
+
+export async function saveMigrationRule(
+  ruleData: Omit<MigrationSlaRule, 'createdAt' | 'updatedAt'> & { id?: string }
+): Promise<MigrationSlaRule> {
+  const db = await readDb();
+  const now = new Date().toISOString();
+
+  if (ruleData.id) {
+    const index = db.migrationRules.findIndex(r => r.id === ruleData.id);
+    if (index !== -1) {
+      const updated: MigrationSlaRule = {
+        ...db.migrationRules[index],
+        ...ruleData,
+        id: ruleData.id,
+        updatedAt: now,
+      };
+      db.migrationRules[index] = updated;
+      await writeDb(db);
+      return updated;
+    }
+  }
+
+  const newRule: MigrationSlaRule = {
+    ...ruleData,
+    id: ruleData.id || `mig-${Date.now()}`,
+    createdAt: now,
+    updatedAt: now,
+  };
+  db.migrationRules.push(newRule);
+  await writeDb(db);
+  return newRule;
+}
+
+export async function deleteMigrationRule(id: string): Promise<boolean> {
+  const db = await readDb();
+  const before = db.migrationRules.length;
+  db.migrationRules = db.migrationRules.filter(r => r.id !== id);
+  await writeDb(db);
+  return db.migrationRules.length < before;
 }

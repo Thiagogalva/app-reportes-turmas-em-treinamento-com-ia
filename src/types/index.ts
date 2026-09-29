@@ -141,6 +141,16 @@ export interface DailyReport {
   updatedAt: string;
 }
 
+export interface MigrationSlaRule {
+  id: string;
+  origin: string;
+  destination: string;
+  chamadoSlaDays: number;          // SLA do Chamado de migração, em Dias Úteis (DU)
+  trainingSlaDays: number | null;  // SLA do Treinamento, em dias corridos (null = não aplicável)
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppSettings {
   geminiApiKey?: string;
   defaultRecipients?: string;
@@ -165,4 +175,5 @@ export interface DatabaseSchema {
   reports: DailyReport[];
   settings: AppSettings;
   users: AuthUser[];
+  migrationRules: MigrationSlaRule[];
 }
