@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { neon } from '@neondatabase/serverless';
-import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule } from '@/types';
+import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule, Chamado } from '@/types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -244,7 +244,8 @@ const INITIAL_DATA: DatabaseSchema = {
   { id: "mig-72", origin: "PAF Out", destination: "PAF Out Bradescard", chamadoSlaDays: 10, trainingSlaDays: 10, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
   { id: "mig-73", origin: "PAF Out Bradescard", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
   { id: "mig-74", origin: "PAF Out Bradescard", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
-  ]
+  ],
+  chamados: []
 };
 
 function ensureLocalFileDbExists(): void {
@@ -303,6 +304,7 @@ export async function readDb(): Promise<DatabaseSchema> {
       if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
       parsed.users = migrateUserRoles(parsed.users);
       if (!parsed.migrationRules) parsed.migrationRules = [];
+      if (!parsed.chamados) parsed.chamados = [];
       const { reports, changed } = purgeExpiredEvidences(parsed.reports);
       parsed.reports = reports;
       if (changed) {
@@ -324,6 +326,7 @@ export async function readDb(): Promise<DatabaseSchema> {
     if (!parsed.segments) parsed.segments = INITIAL_SEGMENTS;
     parsed.users = migrateUserRoles(parsed.users);
     if (!parsed.migrationRules) parsed.migrationRules = [];
+    if (!parsed.chamados) parsed.chamados = [];
     const { reports, changed } = purgeExpiredEvidences(parsed.reports);
     parsed.reports = reports;
     if (changed) {
@@ -615,4 +618,67 @@ export async function deleteMigrationRule(id: string): Promise<boolean> {
   db.migrationRules = db.migrationRules.filter(r => r.id !== id);
   await writeDb(db);
   return db.migrationRules.length < before;
+}
+
+// ==================== CHAMADOS (tratativa de erros e solicitação de acessos) ====================
+export async function getChamados(): Promise<Chamado[]> {
+  const db = await readDb();
+  return db.chamados || [];
+}
+
+export async function saveChamado(
+  data: Omit<Chamado, 'createdAt' | 'updatedAt' | 'status'> & { id?: string; status?: Chamado['status'] }
+): Promise<Chamado> {
+  const db = await readDb();
+  const now = new Date().toISOString();
+
+  if (data.id) {
+    const index = db.chamados.findIndex(c => c.id === data.id);
+    if (index !== -1) {
+      const updated: Chamado = {
+        ...db.chamados[index],
+        ...data,
+        id: data.id,
+        updatedAt: now,
+      };
+      db.chamados[index] = updated;
+      await writeDb(db);
+      return updated;
+    }
+  }
+
+  const newChamado: Chamado = {
+    ...data,
+    id: data.id || `cham-${Date.now()}`,
+    status: data.status || 'PENDENTE',
+    createdAt: now,
+    updatedAt: now,
+  };
+  db.chamados.push(newChamado);
+  await writeDb(db);
+  return newChamado;
+}
+
+export async function setChamadoStatus(id: string, status: Chamado['status']): Promise<Chamado | null> {
+  const db = await readDb();
+  const index = db.chamados.findIndex(c => c.id === id);
+  if (index === -1) return null;
+
+  const updated: Chamado = {
+    ...db.chamados[index],
+    status,
+    approvedDate: status === 'APROVADO' ? new Date().toISOString().slice(0, 10) : undefined,
+    updatedAt: new Date().toISOString(),
+  };
+  db.chamados[index] = updated;
+  await writeDb(db);
+  return updated;
+}
+
+export async function deleteChamado(id: string): Promise<boolean> {
+  const db = await readDb();
+  const before = db.chamados.length;
+  db.chamados = db.chamados.filter(c => c.id !== id);
+  await writeDb(db);
+  return db.chamados.length < before;
 }

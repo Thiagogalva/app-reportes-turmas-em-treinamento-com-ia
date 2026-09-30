@@ -35,6 +35,7 @@ import { exportReportsToExcel, exportSingleReportToPdf } from '@/lib/export-help
 import AiAgentModal from '@/components/AiAgentModal';
 import SlaImpactCard from '@/components/SlaImpactCard';
 import ScheduleGanttCard from '@/components/ScheduleGanttCard';
+import ChamadosCard from '@/components/ChamadosCard';
 
 export default function DashboardPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -248,6 +249,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <SlaImpactCard />
       <ScheduleGanttCard />
+      <ChamadosCard />
 
       {/* Top Banner & Seletor de Turma Ativa */}
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 shadow-xl border border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">

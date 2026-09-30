@@ -17,7 +17,8 @@ import {
   Layers,
   ShieldCheck,
   Gauge,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Ticket
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -81,6 +82,12 @@ export default function Sidebar({
       href: '/migracoes',
       icon: ArrowRightLeft,
       desc: 'Matriz de SLA entre segmentos'
+    },
+    {
+      label: 'Chamados',
+      href: '/chamados',
+      icon: Ticket,
+      desc: 'Erros e solicitações de acesso'
     },
     {
       label: 'Histórico',

@@ -141,6 +141,25 @@ export interface DailyReport {
   updatedAt: string;
 }
 
+export type ChamadoType = 'ERRO_SISTEMA' | 'SOLICITACAO_ACESSO';
+export type ChamadoStatus = 'PENDENTE' | 'APROVADO';
+
+export interface Chamado {
+  id: string;
+  numeroChamado: string;
+  classId: string;
+  className: string;
+  type: ChamadoType;
+  description?: string;
+  slaDays: number;          // Dias para tratativa do chamado
+  openedDate: string;       // YYYY-MM-DD — data de abertura
+  status: ChamadoStatus;
+  approvedDate?: string;    // YYYY-MM-DD — quando foi marcado como aprovado
+  createdBy?: string;       // Nome de quem cadastrou o chamado
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MigrationSlaRule {
   id: string;
   origin: string;
@@ -176,4 +195,5 @@ export interface DatabaseSchema {
   settings: AppSettings;
   users: AuthUser[];
   migrationRules: MigrationSlaRule[];
+  chamados: Chamado[];
 }
