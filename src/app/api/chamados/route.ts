@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getChamados, saveChamado, deleteChamado } from '@/lib/db';
-import { getAdminSession } from '@/lib/auth';
+import { getChamados, saveChamado, deleteChamado, getClasses } from '@/lib/db';
+import { getAdminSession, getSession, namesMatch } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const chamados = await getChamados();
+    let chamados = await getChamados();
+
+    const session = await getSession(request);
+    if (session && session.role !== 'admin') {
+      const classes = await getClasses(false);
+      const allowedClassIds = new Set(classes.filter(c => namesMatch(c.instructor, session.name)).map(c => c.id));
+      chamados = chamados.filter(c => allowedClassIds.has(c.classId));
+    }
+
     return NextResponse.json({ success: true, data: chamados });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClasses, saveClass, deleteClass } from '@/lib/db';
-import { getAdminSession } from '@/lib/auth';
+import { getAdminSession, getSession, namesMatch } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const onlyActive = searchParams.get('onlyActive') === 'true';
-    const classes = await getClasses(onlyActive);
+    let classes = await getClasses(onlyActive);
+
+    // Instrutor (não-admin) só vê as turmas em que aparece como instrutor.
+    // Sessão de /viewer (coordenador) e admin continuam vendo tudo.
+    const session = await getSession(request);
+    if (session && session.role !== 'admin') {
+      classes = classes.filter(c => namesMatch(c.instructor, session.name));
+    }
+
     return NextResponse.json({ success: true, data: classes });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

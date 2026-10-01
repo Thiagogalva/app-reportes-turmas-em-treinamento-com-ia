@@ -84,17 +84,36 @@ export async function verifyToken<T>(token: string): Promise<T | null> {
   }
 }
 
+/**
+ * Compara dois nomes de forma tolerante a espaços extras e maiúsculas/minúsculas —
+ * usado para checar se o "Instrutor" de uma turma corresponde ao usuário logado.
+ */
+export function namesMatch(a: string | undefined | null, b: string | undefined | null): boolean {
+  if (!a || !b) return false;
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 export { SESSION_COOKIE, VIEWER_COOKIE, SESSION_MAX_AGE_SECONDS };
 export type { SessionPayload, ViewerPayload };
 
 /**
  * Helper reutilizável para rotas de API: lê a sessão do cookie da requisição
- * e retorna o payload se for uma sessão de admin válida, ou null.
+ * e retorna o payload se houver uma sessão principal válida (admin OU
+ * instrutor logado), ou null (não logado, ou só sessão de /viewer).
  */
-export async function getAdminSession(request: { cookies: { get: (name: string) => { value: string } | undefined } }): Promise<SessionPayload | null> {
+export async function getSession(request: { cookies: { get: (name: string) => { value: string } | undefined } }): Promise<SessionPayload | null> {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await verifyToken<SessionPayload>(token) : null;
   if (!session || session.scope !== 'admin') return null;
+  return session;
+}
+
+/**
+ * Como getSession, mas só retorna o payload se o usuário tiver perfil Admin.
+ */
+export async function getAdminSession(request: { cookies: { get: (name: string) => { value: string } | undefined } }): Promise<SessionPayload | null> {
+  const session = await getSession(request);
+  if (!session || session.role !== 'admin') return null;
   return session;
 }
 
