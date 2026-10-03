@@ -3,6 +3,7 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
+import PushNotificationToggle from '@/components/PushNotificationToggle';
 import { Menu, Bot, Calendar, LogOut } from 'lucide-react';
 
 const subscribeNoop = () => () => {};
@@ -79,6 +80,7 @@ export default function AppLayoutWrapper({
               <span className="capitalize min-w-[6.5rem]">{todayFormatted ?? '\u00A0'}</span>
             </div>
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sistema Online" />
+            <PushNotificationToggle />
             <button
               onClick={handleLogout}
               className="p-2 rounded-xl bg-dark-card border border-dark-border text-dark-muted hover:text-white hover:border-red-600/50 transition-colors"

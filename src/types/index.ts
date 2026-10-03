@@ -141,6 +141,15 @@ export interface DailyReport {
   updatedAt: string;
 }
 
+export interface PushSubscriptionRecord {
+  id: string;
+  userId: string;
+  username: string;
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  createdAt: string;
+}
+
 export type ChamadoType = 'ERRO_SISTEMA' | 'SOLICITACAO_ACESSO';
 export type ChamadoStatus = 'PENDENTE' | 'APROVADO';
 
@@ -196,4 +205,5 @@ export interface DatabaseSchema {
   users: AuthUser[];
   migrationRules: MigrationSlaRule[];
   chamados: Chamado[];
+  pushSubscriptions: PushSubscriptionRecord[];
 }

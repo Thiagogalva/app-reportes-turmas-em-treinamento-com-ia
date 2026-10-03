@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { neon } from '@neondatabase/serverless';
-import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule, Chamado } from '@/types';
+import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule, Chamado, PushSubscriptionRecord } from '@/types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -245,7 +245,8 @@ const INITIAL_DATA: DatabaseSchema = {
   { id: "mig-73", origin: "PAF Out Bradescard", destination: "PAF In", chamadoSlaDays: 21, trainingSlaDays: 20, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
   { id: "mig-74", origin: "PAF Out Bradescard", destination: "PAF Out", chamadoSlaDays: 21, trainingSlaDays: 15, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" },
   ],
-  chamados: []
+  chamados: [],
+  pushSubscriptions: []
 };
 
 function ensureLocalFileDbExists(): void {
@@ -305,6 +306,7 @@ export async function readDb(): Promise<DatabaseSchema> {
       parsed.users = migrateUserRoles(parsed.users);
       if (!parsed.migrationRules) parsed.migrationRules = [];
       if (!parsed.chamados) parsed.chamados = [];
+      if (!parsed.pushSubscriptions) parsed.pushSubscriptions = [];
       const { reports, changed } = purgeExpiredEvidences(parsed.reports);
       parsed.reports = reports;
       if (changed) {
@@ -327,6 +329,7 @@ export async function readDb(): Promise<DatabaseSchema> {
     parsed.users = migrateUserRoles(parsed.users);
     if (!parsed.migrationRules) parsed.migrationRules = [];
     if (!parsed.chamados) parsed.chamados = [];
+    if (!parsed.pushSubscriptions) parsed.pushSubscriptions = [];
     const { reports, changed } = purgeExpiredEvidences(parsed.reports);
     parsed.reports = reports;
     if (changed) {
@@ -681,4 +684,44 @@ export async function deleteChamado(id: string): Promise<boolean> {
   db.chamados = db.chamados.filter(c => c.id !== id);
   await writeDb(db);
   return db.chamados.length < before;
+}
+
+// ==================== INSCRIÇÕES DE NOTIFICAÇÃO PUSH ====================
+export async function getPushSubscriptions(): Promise<PushSubscriptionRecord[]> {
+  const db = await readDb();
+  return db.pushSubscriptions || [];
+}
+
+export async function savePushSubscription(
+  data: Omit<PushSubscriptionRecord, 'id' | 'createdAt'>
+): Promise<PushSubscriptionRecord> {
+  const db = await readDb();
+  // Evita duplicar: se já existe uma inscrição com o mesmo endpoint, substitui.
+  db.pushSubscriptions = (db.pushSubscriptions || []).filter(s => s.endpoint !== data.endpoint);
+  const newSub: PushSubscriptionRecord = {
+    ...data,
+    id: `push-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  db.pushSubscriptions.push(newSub);
+  await writeDb(db);
+  return newSub;
+}
+
+export async function deletePushSubscriptionByEndpoint(endpoint: string): Promise<void> {
+  const db = await readDb();
+  db.pushSubscriptions = (db.pushSubscriptions || []).filter(s => s.endpoint !== endpoint);
+  await writeDb(db);
+}
+
+/**
+ * Remove inscrições inválidas (ex: navegador revogou a permissão) — chamado
+ * pelo job diário quando o envio falha com erro 404/410 do serviço de push.
+ */
+export async function removeInvalidPushSubscriptions(endpoints: string[]): Promise<void> {
+  if (endpoints.length === 0) return;
+  const db = await readDb();
+  const toRemove = new Set(endpoints);
+  db.pushSubscriptions = (db.pushSubscriptions || []).filter(s => !toRemove.has(s.endpoint));
+  await writeDb(db);
 }

@@ -55,6 +55,7 @@ export async function middleware(request: NextRequest) {
   if (
     pathname === '/login' ||
     pathname.startsWith('/api/auth/login') ||
+    pathname.startsWith('/api/cron/') || // autenticado pelo próprio CRON_SECRET (Bearer token), não por cookie
     pathname.startsWith('/api/auth/logout') ||
     pathname === '/viewer/login' ||
     pathname.startsWith('/api/auth/viewer-login') ||
