@@ -162,6 +162,7 @@ export interface Chamado {
   description?: string;
   slaDays: number;          // Dias para tratativa do chamado
   openedDate: string;       // YYYY-MM-DD — data de abertura
+  relatedSystemId?: string; // Se vinculado a um erro específico de sistema reportado
   status: ChamadoStatus;
   approvedDate?: string;    // YYYY-MM-DD — quando foi marcado como aprovado
   createdBy?: string;       // Nome de quem cadastrou o chamado

@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Gauge,
   ArrowRightLeft,
-  Ticket
+  Ticket,
+  AlertOctagon
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -101,6 +102,12 @@ export default function Sidebar({
       icon: Settings,
       desc: 'Chaves e Destinatários'
     },
+    ...(isAdmin ? [{
+      label: 'Erros & Chamados',
+      href: '/erros',
+      icon: AlertOctagon,
+      desc: 'Erros reportados x chamados'
+    }] : []),
     ...(isAdmin ? [{
       label: 'Usuários',
       href: '/usuarios',
