@@ -52,28 +52,37 @@ export function evaluateSlaImpact(
     return { hasSla: false, deadline: null, impacted: false, reason: 'Segmento sem prazo de SLA configurado.' };
   }
 
-  const reference = endDate || todayStr();
-  const impacted = deadline > reference;
+  const today = todayStr();
 
+  if (endDate) {
+    // Turma com data de término definida: impacto = o prazo de acesso cai DEPOIS do fim da turma.
+    const impacted = deadline > endDate;
+    if (impacted) {
+      const daysOverdue = daysBetween(endDate, deadline);
+      return {
+        hasSla: true,
+        deadline,
+        impacted: true,
+        reason: `Os acessos só seriam liberados em ${formatDatePtBr(deadline)}, ${daysOverdue} dia(s) após o término previsto da turma (${formatDatePtBr(endDate)}).`,
+        daysOverdue,
+      };
+    }
+    return { hasSla: true, deadline, impacted: false, reason: `Acessos previstos para ${formatDatePtBr(deadline)}, dentro do prazo.` };
+  }
+
+  // Turma ainda em andamento, sem data de término: impacto = o prazo já venceu e ainda não terminou.
+  const impacted = deadline < today;
   if (impacted) {
-    const daysOverdue = daysBetween(reference, deadline);
+    const daysOverdue = daysBetween(deadline, today);
     return {
       hasSla: true,
       deadline,
       impacted: true,
-      reason: endDate
-        ? `Os acessos só seriam liberados em ${formatDatePtBr(deadline)}, ${daysOverdue} dia(s) após o término previsto da turma (${formatDatePtBr(endDate)}).`
-        : `O prazo de liberação de acessos (${formatDatePtBr(deadline)}) já venceu e a turma ainda está em treinamento.`,
+      reason: `O prazo de liberação de acessos (${formatDatePtBr(deadline)}) já venceu e a turma ainda está em treinamento.`,
       daysOverdue,
     };
   }
-
-  return {
-    hasSla: true,
-    deadline,
-    impacted: false,
-    reason: `Acessos previstos para ${formatDatePtBr(deadline)}, dentro do prazo.`,
-  };
+  return { hasSla: true, deadline, impacted: false, reason: `Acessos previstos para ${formatDatePtBr(deadline)}, dentro do prazo.` };
 }
 
 export function daysBetween(a: string, b: string): number {

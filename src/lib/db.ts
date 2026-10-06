@@ -281,7 +281,7 @@ function migrateUserRoles(users: any[] | undefined): any[] {
 
 // Evidências de erro (prints anexados aos reportes) expiram após 5 dias, para
 // não acumular imagens indefinidamente no banco de dados.
-function purgeExpiredEvidences(reports: any[] | undefined): { reports: any[]; changed: boolean } {
+export function purgeExpiredEvidences(reports: any[] | undefined): { reports: any[]; changed: boolean } {
   if (!reports) return { reports: [], changed: false };
   const now = Date.now();
   let changed = false;
@@ -292,6 +292,38 @@ function purgeExpiredEvidences(reports: any[] | undefined): { reports: any[]; ch
     if (kept.length === evidences.length) return r;
     changed = true;
     return { ...r, systemsStatus: { ...r.systemsStatus, evidences: kept } };
+  });
+  return { reports: cleaned, changed };
+}
+
+// Remove evidências de reportes cuja turma (classId) já não existe mais no
+// sistema — cobre o caso de turmas que foram excluídas no passado, antes
+// dessa limpeza existir, e cujas evidências ficaram "órfãs".
+export function purgeOrphanedEvidences(reports: any[] | undefined, classIds: Set<string>): { reports: any[]; changed: boolean } {
+  if (!reports) return { reports: [], changed: false };
+  let changed = false;
+  const cleaned = reports.map(r => {
+    const evidences = r?.systemsStatus?.evidences;
+    if (!evidences || evidences.length === 0) return r;
+    if (classIds.has(r.classId)) return r; // turma ainda existe, mantém
+    changed = true;
+    return { ...r, systemsStatus: { ...r.systemsStatus, evidences: [] } };
+  });
+  return { reports: cleaned, changed };
+}
+
+/**
+ * Remove (em memória, sem gravar sozinho) todas as evidências dos reportes
+ * de uma turma específica — usado quando a turma é excluída ou encerrada.
+ */
+export function stripEvidencesForClass(reports: any[], classId: string): { reports: any[]; changed: boolean } {
+  let changed = false;
+  const cleaned = reports.map(r => {
+    if (r.classId !== classId) return r;
+    const evidences = r?.systemsStatus?.evidences;
+    if (!evidences || evidences.length === 0) return r;
+    changed = true;
+    return { ...r, systemsStatus: { ...r.systemsStatus, evidences: [] } };
   });
   return { reports: cleaned, changed };
 }
@@ -307,8 +339,11 @@ export async function readDb(): Promise<DatabaseSchema> {
       if (!parsed.migrationRules) parsed.migrationRules = [];
       if (!parsed.chamados) parsed.chamados = [];
       if (!parsed.pushSubscriptions) parsed.pushSubscriptions = [];
-      const { reports, changed } = purgeExpiredEvidences(parsed.reports);
-      parsed.reports = reports;
+      const expiredResult = purgeExpiredEvidences(parsed.reports);
+      const existingClassIds = new Set(parsed.classes.map(c => c.id));
+      const orphanResult = purgeOrphanedEvidences(expiredResult.reports, existingClassIds);
+      parsed.reports = orphanResult.reports;
+      const changed = expiredResult.changed || orphanResult.changed;
       if (changed) {
         // Persiste a limpeza para realmente liberar espaço no banco.
         await writeDb(parsed);
@@ -330,7 +365,10 @@ export async function readDb(): Promise<DatabaseSchema> {
     if (!parsed.migrationRules) parsed.migrationRules = [];
     if (!parsed.chamados) parsed.chamados = [];
     if (!parsed.pushSubscriptions) parsed.pushSubscriptions = [];
-    const { reports, changed } = purgeExpiredEvidences(parsed.reports);
+    const expiredResultLocal = purgeExpiredEvidences(parsed.reports);
+    const existingClassIdsLocal = new Set(parsed.classes.map(c => c.id));
+    const { reports, changed: orphanChangedLocal } = purgeOrphanedEvidences(expiredResultLocal.reports, existingClassIdsLocal);
+    const changed = expiredResultLocal.changed || orphanChangedLocal;
     parsed.reports = reports;
     if (changed) {
       await writeDb(parsed);
@@ -439,6 +477,7 @@ export async function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updat
   if (classData.id) {
     const index = db.classes.findIndex(c => c.id === classData.id);
     if (index !== -1) {
+      const wasAlreadyConcluded = db.classes[index].status === 'CONCLUIDA';
       const updated: ClassGroup = {
         ...db.classes[index],
         ...classData,
@@ -446,6 +485,14 @@ export async function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updat
         updatedAt: now,
       };
       db.classes[index] = updated;
+
+      // Turma foi encerrada agora (não estava concluída antes) → as evidências
+      // de erro dessa turma deixam de ser necessárias e são removidas.
+      if (updated.status === 'CONCLUIDA' && !wasAlreadyConcluded) {
+        const { reports, changed } = stripEvidencesForClass(db.reports, updated.id);
+        if (changed) db.reports = reports;
+      }
+
       await writeDb(db);
       return updated;
     }
@@ -491,6 +538,10 @@ export async function deleteClass(id: string): Promise<boolean> {
   const initialLength = db.classes.length;
   db.classes = db.classes.filter(c => c.id !== id);
   if (db.classes.length !== initialLength) {
+    // A turma deixou de existir — remove também as evidências de erro
+    // associadas a ela, para não acumular imagens órfãs no banco.
+    const { reports, changed } = stripEvidencesForClass(db.reports, id);
+    if (changed) db.reports = reports;
     await writeDb(db);
     return true;
   }
