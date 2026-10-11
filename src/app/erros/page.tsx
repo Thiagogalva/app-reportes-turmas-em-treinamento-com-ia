@@ -12,6 +12,7 @@ import {
   Save,
   Filter,
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { DailyReport, Chamado, ClassGroup } from '@/types';
 import { buildErrorIncidents, ErrorIncident } from '@/lib/errors';
 import { formatDatePtBr, todayStr } from '@/lib/sla';
@@ -108,7 +109,7 @@ export default function ErrosPage() {
   };
 
   if (checkingAccess) {
-    return <div className="p-6 text-dark-muted text-sm">Carregando...</div>;
+    return <LoadingState />;
   }
 
   if (!hasAccess) {
@@ -147,7 +148,7 @@ export default function ErrosPage() {
       {/* Lista */}
       <div className="space-y-2">
         {loading ? (
-          <p className="text-xs text-dark-muted">Carregando...</p>
+          <LoadingState />
         ) : filteredIncidents.length === 0 ? (
           <p className="text-xs text-dark-muted">Nenhum erro reportado encontrado com esse filtro.</p>
         ) : (

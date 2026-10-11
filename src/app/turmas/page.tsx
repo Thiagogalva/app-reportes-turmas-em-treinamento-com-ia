@@ -17,10 +17,11 @@ import {
   CalendarDays,
   Sparkles,
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { ClassGroup, ClassStatus, Student, Segment, ScheduleDay } from '@/types';
 import OperatorImportModal from '@/components/OperatorImportModal';
 import { generateDefaultSchedule } from '@/lib/schedule';
-import { addDays } from '@/lib/sla';
+import { addDays, todayStr } from '@/lib/sla';
 
 export default function TurmasPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -48,7 +49,7 @@ export default function TurmasPage() {
   const [instructor, setInstructor] = useState('Thiago Instrutor');
   const [segmentId, setSegmentId] = useState('');
   const [status, setStatus] = useState<ClassStatus>('EM_TREINAMENTO');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(todayStr());
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -102,7 +103,7 @@ export default function TurmasPage() {
     setInstructor('Thiago Instrutor');
     setSegmentId(segments[0]?.id || '');
     setStatus('EM_TREINAMENTO');
-    setStartDate(new Date().toISOString().split('T')[0]);
+    setStartDate(todayStr());
     setEndDate('');
     setDescription('');
     setStudents([]);
@@ -302,6 +303,14 @@ export default function TurmasPage() {
   const filteredClasses = classes.filter(c => c.status === activeTab);
   const activeCount = classes.filter(c => c.status === 'EM_TREINAMENTO').length;
   const concludedCount = classes.filter(c => c.status === 'CONCLUIDA').length;
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <LoadingState label="Carregando turmas..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -707,7 +716,7 @@ export default function TurmasPage() {
                       if (!newDayTitle.trim()) return;
                       const nextDayNumber = schedule.length + 1;
                       const lastDate = schedule.length > 0 ? schedule[schedule.length - 1].plannedDate : startDate;
-                      const plannedDate = schedule.length > 0 ? addDays(lastDate, 1) : (startDate || new Date().toISOString().slice(0, 10));
+                      const plannedDate = schedule.length > 0 ? addDays(lastDate, 1) : (startDate || todayStr());
                       setSchedule(prev => [...prev, {
                         id: `sched-${Date.now()}`,
                         dayNumber: nextDayNumber,

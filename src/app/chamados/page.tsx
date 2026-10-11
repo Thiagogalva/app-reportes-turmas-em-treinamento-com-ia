@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Filter,
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { Chamado, ClassGroup, ChamadoType, ChamadoStatus } from '@/types';
 import { addDays, todayStr, formatDatePtBr, daysBetween } from '@/lib/sla';
 
@@ -198,7 +199,7 @@ export default function ChamadosPage() {
       {/* Lista de chamados */}
       <div className="space-y-2">
         {loading ? (
-          <p className="text-xs text-dark-muted">Carregando...</p>
+          <LoadingState />
         ) : filteredChamados.length === 0 ? (
           <p className="text-xs text-dark-muted">Nenhum chamado encontrado.</p>
         ) : (

@@ -5,6 +5,7 @@ import { CalendarDays, AlertTriangle, Info } from 'lucide-react';
 import { ClassGroup } from '@/types';
 import { addDays, todayStr, formatDatePtBr } from '@/lib/sla';
 import { evaluateClassScheduleDeviation } from '@/lib/schedule';
+import LoadingState from '@/components/LoadingState';
 
 type DayStatus = 'completed-on-time' | 'completed-late' | 'overdue' | 'today' | 'future' | 'empty';
 
@@ -65,7 +66,7 @@ export default function ScheduleGanttCard() {
   if (loading) {
     return (
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
-        <p className="text-xs text-dark-muted">Carregando cronogramas...</p>
+        <LoadingState label="Carregando cronogramas..." />
       </div>
     );
   }

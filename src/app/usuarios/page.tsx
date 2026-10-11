@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Lock,
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { AuthUser } from '@/types';
 
 type SafeUser = Omit<AuthUser, 'passwordHash'>;
@@ -171,7 +172,7 @@ export default function UsuariosPage() {
   };
 
   if (checkingAccess) {
-    return <div className="p-6 text-dark-muted text-sm">Carregando...</div>;
+    return <LoadingState />;
   }
 
   if (!hasAccess) {
@@ -254,7 +255,7 @@ export default function UsuariosPage() {
           <span>Usuários cadastrados</span>
         </div>
         {loading ? (
-          <div className="p-6 text-xs text-dark-muted">Carregando usuários...</div>
+          <LoadingState label="Carregando usuários..." />
         ) : users.length === 0 ? (
           <div className="p-6 text-xs text-dark-muted">Nenhum usuário cadastrado ainda.</div>
         ) : (

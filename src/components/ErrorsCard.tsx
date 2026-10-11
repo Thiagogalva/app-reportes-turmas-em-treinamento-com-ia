@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AlertOctagon, ArrowRight } from 'lucide-react';
 import { DailyReport, Chamado } from '@/types';
 import { buildErrorIncidents } from '@/lib/errors';
+import LoadingState from '@/components/LoadingState';
 
 export default function ErrorsCard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,7 +57,7 @@ export default function ErrorsCard() {
   if (loading) {
     return (
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
-        <p className="text-xs text-dark-muted">Carregando erros reportados...</p>
+        <LoadingState label="Carregando erros reportados..." />
       </div>
     );
   }

@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useSyncExternalStore } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
-import { Menu, Bot, Calendar, LogOut } from 'lucide-react';
+import RouteProgressBar from '@/components/RouteProgressBar';
+import { NavigationLoadingProvider, useNavigationLoading } from '@/contexts/NavigationLoadingContext';
+import { Menu, Bot, Calendar, LogOut, Loader2 } from 'lucide-react';
 
 const subscribeNoop = () => () => {};
 
@@ -20,7 +22,21 @@ export default function AppLayoutWrapper({
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <NavigationLoadingProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </NavigationLoadingProvider>
+  );
+}
+
+function AppLayoutInner({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { isNavigating } = useNavigationLoading();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -41,6 +57,8 @@ export default function AppLayoutWrapper({
 
   return (
     <div className="flex min-h-screen bg-dark-bg text-dark-text antialiased">
+      <RouteProgressBar />
+
       {/* Sidebar Lateral */}
       <Sidebar
         isCollapsed={isCollapsed}
@@ -79,7 +97,11 @@ export default function AppLayoutWrapper({
               <Calendar className="w-3.5 h-3.5 text-bradesco-500" />
               <span className="capitalize min-w-[6.5rem]">{todayFormatted ?? '\u00A0'}</span>
             </div>
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sistema Online" />
+            {isNavigating ? (
+              <Loader2 className="w-3.5 h-3.5 text-bradesco-500 animate-spin-slow" aria-label="Carregando..." />
+            ) : (
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sistema Online" />
+            )}
             <PushNotificationToggle />
             <button
               onClick={handleLogout}
@@ -94,7 +116,9 @@ export default function AppLayoutWrapper({
 
         {/* Área de Visualização com Padding Responsivo */}
         <main className="flex-1 p-3 sm:p-6 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
-          {children}
+          <div key={pathname} className="animate-fade-slide-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>

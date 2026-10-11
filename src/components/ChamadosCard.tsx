@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { Ticket, AlertTriangle } from 'lucide-react';
 import { Chamado } from '@/types';
 import { addDays, todayStr, formatDatePtBr } from '@/lib/sla';
+import LoadingState from '@/components/LoadingState';
 
 const TYPE_LABELS: Record<string, string> = {
   ERRO_SISTEMA: 'Erro de Sistema',
@@ -52,7 +53,7 @@ export default function ChamadosCard() {
   if (loading) {
     return (
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
-        <p className="text-xs text-dark-muted">Carregando chamados...</p>
+        <LoadingState label="Carregando chamados..." />
       </div>
     );
   }

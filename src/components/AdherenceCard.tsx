@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ClipboardCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ClassGroup, DailyReport } from '@/types';
 import { evaluateClassAdherence } from '@/lib/adherence';
+import LoadingState from '@/components/LoadingState';
 
 function adherenceColor(percent: number): string {
   if (percent >= 90) return '#10b981'; // emerald-500
@@ -47,7 +48,7 @@ export default function AdherenceCard() {
   if (loading) {
     return (
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
-        <p className="text-xs text-dark-muted">Calculando aderência...</p>
+        <LoadingState label="Calculando aderência..." />
       </div>
     );
   }

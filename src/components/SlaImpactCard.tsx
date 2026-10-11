@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AlertTriangle, Clock, CheckCircle2, Gauge } from 'lucide-react';
 import { ClassGroup, Segment } from '@/types';
 import { evaluateClassSlaImpact, formatDatePtBr } from '@/lib/sla';
+import LoadingState from '@/components/LoadingState';
 
 export default function SlaImpactCard() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -51,7 +52,7 @@ export default function SlaImpactCard() {
   if (loading) {
     return (
       <div className="bg-dark-surface rounded-2xl p-4 sm:p-6 border border-dark-border shadow-sm">
-        <p className="text-xs text-dark-muted">Calculando impacto de SLA...</p>
+        <LoadingState label="Calculando impacto de SLA..." />
       </div>
     );
   }

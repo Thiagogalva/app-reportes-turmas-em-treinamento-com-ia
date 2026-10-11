@@ -16,16 +16,13 @@ import {
   LogOut,
 } from 'lucide-react';
 import { ClassGroup, DailyReport, AttendanceStatus } from '@/types';
+import { todayStr } from '@/lib/sla';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
-}
-
-function todayStr() {
-  return new Date().toISOString().split('T')[0];
 }
 
 function relativeDay(iso: string) {

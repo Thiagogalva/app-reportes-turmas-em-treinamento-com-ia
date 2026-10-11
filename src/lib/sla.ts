@@ -10,8 +10,20 @@ export function addDays(dateStr: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Retorna a data de "hoje" no fuso horário de Brasília (America/Sao_Paulo),
+ * não em UTC. Isso é importante porque o servidor roda em UTC — sem isso,
+ * a partir de ~21h no horário do Brasil o sistema já consideraria "amanhã",
+ * fazendo reportes do próprio dia parecerem atrasados incorretamente.
+ */
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(new Date()); // en-CA formata como YYYY-MM-DD
 }
 
 /**

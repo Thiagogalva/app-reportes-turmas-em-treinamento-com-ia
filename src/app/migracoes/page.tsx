@@ -13,6 +13,7 @@ import {
   Info,
   ShieldCheck,
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { MigrationSlaRule } from '@/types';
 import { addDays, formatDatePtBr } from '@/lib/sla';
 import { addBusinessDays } from '@/lib/business-days';
@@ -121,6 +122,14 @@ export default function MigracoesPage() {
       alert(json.error || 'Erro ao excluir regra.');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <LoadingState label="Carregando matriz de migração..." />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">

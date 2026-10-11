@@ -1,5 +1,35 @@
-import { describe, it, expect } from 'vitest';
-import { addDays, daysBetween, calculateSlaDeadline, evaluateSlaImpact, formatDatePtBr } from '../sla';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { addDays, daysBetween, calculateSlaDeadline, evaluateSlaImpact, formatDatePtBr, todayStr } from '../sla';
+
+describe('todayStr', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('usa o dia correto do horário de Brasília, mesmo quando já é o dia seguinte em UTC', () => {
+    // 01:30 UTC de 05/10 = 22:30 em Brasília, ainda 04/10 — cenário real do
+    // bug relatado: perto da virada do dia, o servidor (UTC) já achava que
+    // era "amanhã" enquanto no Brasil ainda era "hoje".
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-05T01:30:00.000Z'));
+    expect(todayStr()).toBe('2026-10-04');
+  });
+
+  it('bate com UTC em horários "de dia" (sem risco de virada), só pra garantir consistência', () => {
+    // 15:00 UTC = 12:00 em Brasília, mesmo dia calendário nos dois fusos.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-04T15:00:00.000Z'));
+    expect(todayStr()).toBe('2026-10-04');
+  });
+
+  it('não vira o dia cedo demais — meia-noite em Brasília só acontece às 03:00 UTC', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-05T02:59:00.000Z')); // 23:59 em Brasília, ainda 04/10
+    expect(todayStr()).toBe('2026-10-04');
+    vi.setSystemTime(new Date('2026-10-05T03:00:00.000Z')); // 00:00 em Brasília, já 05/10
+    expect(todayStr()).toBe('2026-10-05');
+  });
+});
 
 describe('addDays', () => {
   it('soma dias corridos dentro do mesmo mês', () => {

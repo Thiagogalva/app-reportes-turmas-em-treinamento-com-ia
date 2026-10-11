@@ -35,13 +35,14 @@ import {
 } from '@/types';
 import AiAgentModal from '@/components/AiAgentModal';
 import { compressImageFile } from '@/lib/image-compress';
+import { todayStr } from '@/lib/sla';
 
 export default function NovoRelatorioPage() {
   const router = useRouter();
   const [classes, setClasses] = useState<ClassGroup[]>([]);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<string>(todayStr());
 
   // Seção 1: Sistemas dos Alunos / Segmento
   const [systemsOperational, setSystemsOperational] = useState<boolean>(true);

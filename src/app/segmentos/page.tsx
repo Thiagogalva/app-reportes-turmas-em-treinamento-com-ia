@@ -16,6 +16,7 @@ import {
   Info,
   Clock
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { Segment, SegmentSystem } from '@/types';
 
 export default function SegmentosPage() {
@@ -228,6 +229,14 @@ export default function SegmentosPage() {
       console.error("Erro ao remover sistema:", err);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <LoadingState label="Carregando segmentos..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">

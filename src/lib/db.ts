@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { neon } from '@neondatabase/serverless';
 import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule, Chamado, PushSubscriptionRecord } from '@/types';
+import { todayStr } from './sla';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -523,7 +524,7 @@ export async function toggleScheduleDay(classId: string, dayId: string, complete
   const classGroup = db.classes[classIndex];
   const schedule = (classGroup.schedule || []).map(day =>
     day.id === dayId
-      ? { ...day, completed, completedDate: completed ? new Date().toISOString().slice(0, 10) : undefined }
+      ? { ...day, completed, completedDate: completed ? todayStr() : undefined }
       : day
   );
 
@@ -721,7 +722,7 @@ export async function setChamadoStatus(id: string, status: Chamado['status']): P
   const updated: Chamado = {
     ...db.chamados[index],
     status,
-    approvedDate: status === 'APROVADO' ? new Date().toISOString().slice(0, 10) : undefined,
+    approvedDate: status === 'APROVADO' ? todayStr() : undefined,
     updatedAt: new Date().toISOString(),
   };
   db.chamados[index] = updated;

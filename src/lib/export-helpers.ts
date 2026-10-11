@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DailyReport, ClassGroup } from '@/types';
+import { todayStr } from './sla';
 
 export function exportReportsToExcel(reports: DailyReport[], currentClass?: ClassGroup) {
   const wb = XLSX.utils.book_new();
@@ -87,7 +88,7 @@ export function exportReportsToExcel(reports: DailyReport[], currentClass?: Clas
 
   const filename = currentClass
     ? `Relatorio_Treinamento_Bradesco_${currentClass.name.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`
-    : `Relatorio_Treinamento_Bradesco_${new Date().toISOString().split('T')[0]}.xlsx`;
+    : `Relatorio_Treinamento_Bradesco_${todayStr()}.xlsx`;
 
   XLSX.writeFile(wb, filename);
 }

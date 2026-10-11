@@ -14,6 +14,7 @@ import {
   FileText,
   Image as ImageIcon
 } from 'lucide-react';
+import LoadingState from '@/components/LoadingState';
 import { DailyReport, ClassGroup, AiGeneratedReport } from '@/types';
 import { exportReportsToExcel, exportSingleReportToPdf } from '@/lib/export-helpers';
 import AiAgentModal from '@/components/AiAgentModal';
@@ -132,6 +133,14 @@ export default function HistoricoPage() {
       return true;
     });
   }, [reports, selectedClassId, filterOnlySystemIssues, filterOnlyLowPerformers, searchTerm]);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <LoadingState label="Carregando histórico..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
