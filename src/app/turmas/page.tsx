@@ -22,6 +22,7 @@ import { ClassGroup, ClassStatus, Student, Segment, ScheduleDay } from '@/types'
 import OperatorImportModal from '@/components/OperatorImportModal';
 import { generateDefaultSchedule } from '@/lib/schedule';
 import { addDays, todayStr } from '@/lib/sla';
+import { getMaxStage, getStageSummary, getPendingSystems } from '@/lib/stages';
 
 export default function TurmasPage() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -48,6 +49,8 @@ export default function TurmasPage() {
   const [code, setCode] = useState('');
   const [instructor, setInstructor] = useState('Thiago Instrutor');
   const [segmentId, setSegmentId] = useState('');
+  const [releasedStageInput, setReleasedStageInput] = useState<number | null>(1);
+  const [stageBusyId, setStageBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<ClassStatus>('EM_TREINAMENTO');
   const [startDate, setStartDate] = useState(todayStr());
   const [endDate, setEndDate] = useState('');
@@ -102,6 +105,7 @@ export default function TurmasPage() {
     setCode(`TURMA-${new Date().getFullYear()}.${classes.length + 1}`);
     setInstructor('Thiago Instrutor');
     setSegmentId(segments[0]?.id || '');
+    setReleasedStageInput(1);
     setStatus('EM_TREINAMENTO');
     setStartDate(todayStr());
     setEndDate('');
@@ -118,6 +122,7 @@ export default function TurmasPage() {
     setCode(c.code);
     setInstructor(c.instructor);
     setSegmentId(c.segmentId || (segments[0]?.id || ''));
+    setReleasedStageInput(c.releasedStage ?? null);
     setStatus(c.status);
     setStartDate(c.startDate);
     setEndDate(c.endDate || '');
@@ -209,6 +214,7 @@ export default function TurmasPage() {
     }
 
     const currentSegment = segments.find(s => s.id === segmentId);
+    const segmentMaxStage = getMaxStage(currentSegment);
 
     const payload = {
       ...(editingClass ? { id: editingClass.id } : {}),
@@ -223,6 +229,8 @@ export default function TurmasPage() {
       description: description.trim() || undefined,
       students,
       schedule,
+      // Só grava a etapa quando o segmento tem liberação gradual (mais de uma etapa).
+      ...(segmentMaxStage > 1 ? { releasedStage: Math.min(releasedStageInput ?? segmentMaxStage, segmentMaxStage) } : {}),
     };
 
     try {
@@ -249,6 +257,27 @@ export default function TurmasPage() {
   };
 
   // Alternar status da turma: "EM_TREINAMENTO" <-> "CONCLUIDA"
+  const advanceStage = async (c: ClassGroup, nextStage: number) => {
+    setStageBusyId(c.id);
+    try {
+      const res = await fetch(`/api/classes/${c.id}/stage`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ releasedStage: nextStage }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setClasses(prev => prev.map(item => (item.id === c.id ? json.data : item)));
+      } else {
+        alert(json.error || 'Erro ao liberar etapa.');
+      }
+    } catch {
+      alert('Erro de conexão ao liberar etapa.');
+    } finally {
+      setStageBusyId(null);
+    }
+  };
+
   const toggleClassStatus = async (c: ClassGroup) => {
     const newStatus: ClassStatus = c.status === 'EM_TREINAMENTO' ? 'CONCLUIDA' : 'EM_TREINAMENTO';
     const confirmText = newStatus === 'CONCLUIDA'
@@ -461,6 +490,38 @@ export default function TurmasPage() {
                   )}
                 </div>
 
+                {/* Liberação gradual de sistemas (etapas) */}
+                {(() => {
+                  const seg = segments.find(sg => sg.id === c.segmentId || sg.name === c.segmentName);
+                  const stage = getStageSummary(c, seg);
+                  if (!stage.hasStages) return null;
+                  const pending = getPendingSystems(c, seg);
+                  return (
+                    <div className="p-2.5 rounded-xl bg-dark-card border border-dark-border space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-dark-muted font-medium">Liberação de sistemas:</span>
+                        <span className={`font-bold text-[11px] ${stage.allReleased ? 'text-emerald-400' : 'text-sky-300'}`}>
+                          Etapa {stage.current} de {stage.max}
+                        </span>
+                      </div>
+                      {pending.length > 0 && (
+                        <p className="text-[10px] text-dark-muted leading-relaxed">
+                          Ainda não liberados: {pending.map(p => p.name).join(', ')}
+                        </p>
+                      )}
+                      {isAdmin && !stage.allReleased && c.status === 'EM_TREINAMENTO' && (
+                        <button
+                          onClick={() => advanceStage(c, stage.current + 1)}
+                          disabled={stageBusyId === c.id}
+                          className="w-full mt-1 py-1.5 rounded-lg bg-sky-950/60 hover:bg-sky-900/60 text-sky-300 border border-sky-800/50 text-[11px] font-bold disabled:opacity-50"
+                        >
+                          {stageBusyId === c.id ? 'Liberando...' : `Liberar etapa ${stage.current + 1}`}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Métricas do Card */}
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                   <div className="bg-dark-card p-2.5 rounded-xl border border-dark-border">
@@ -619,6 +680,32 @@ export default function TurmasPage() {
                     ))}
                   </select>
                 </div>
+
+                {(() => {
+                  const modalMax = getMaxStage(segments.find(sg => sg.id === segmentId));
+                  if (modalMax <= 1) return null;
+                  return (
+                    <div>
+                      <label className="block text-xs font-bold text-dark-muted mb-1">
+                        Etapa de sistemas liberada para a turma
+                      </label>
+                      <select
+                        value={Math.min(releasedStageInput ?? modalMax, modalMax)}
+                        onChange={(e) => setReleasedStageInput(Number(e.target.value))}
+                        className="w-full text-xs font-bold text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
+                      >
+                        {Array.from({ length: modalMax }, (_, i) => i + 1).map(n => (
+                          <option key={n} value={n}>
+                            {n === modalMax ? `Etapa ${n} — todos os sistemas liberados` : `Etapa ${n} — liberação parcial`}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-dark-muted mt-1">
+                        Sistemas de etapas ainda não liberadas não entram nos testes nem contam como falha nos reports dessa turma.
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <label className="block text-xs font-bold text-dark-muted mb-1">

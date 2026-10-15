@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import LoadingState from '@/components/LoadingState';
+import { getSystemStage, getMaxStage } from '@/lib/stages';
 import { Segment, SegmentSystem } from '@/types';
 
 export default function SegmentosPage() {
@@ -37,6 +38,7 @@ export default function SegmentosPage() {
   const [systemName, setSystemName] = useState('');
   const [systemDesc, setSystemDesc] = useState('');
   const [systemMandatory, setSystemMandatory] = useState(true);
+  const [systemStage, setSystemStage] = useState(1);
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -137,6 +139,7 @@ export default function SegmentosPage() {
     setSystemName('');
     setSystemDesc('');
     setSystemMandatory(true);
+    setSystemStage(1);
     setIsSystemModalOpen(true);
   };
 
@@ -145,6 +148,7 @@ export default function SegmentosPage() {
     setSystemName(sys.name);
     setSystemDesc(sys.description || '');
     setSystemMandatory(sys.mandatory ?? true);
+    setSystemStage(getSystemStage(sys));
     setIsSystemModalOpen(true);
   };
 
@@ -162,6 +166,7 @@ export default function SegmentosPage() {
               name: systemName.trim(),
               description: systemDesc.trim(),
               mandatory: systemMandatory,
+              releaseStage: systemStage,
             }
           : item
       );
@@ -171,6 +176,7 @@ export default function SegmentosPage() {
         name: systemName.trim(),
         description: systemDesc.trim(),
         mandatory: systemMandatory,
+        releaseStage: systemStage,
       };
       updatedSystems.push(newSys);
     }
@@ -398,7 +404,7 @@ export default function SegmentosPage() {
 
                 {activeSegment.systems.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {activeSegment.systems.map((sys) => (
+                    {[...activeSegment.systems].sort((a, b) => getSystemStage(a) - getSystemStage(b)).map((sys) => (
                       <div
                         key={sys.id}
                         className="bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col justify-between space-y-3 hover:border-dark-borderHover transition-all"
@@ -408,11 +414,18 @@ export default function SegmentosPage() {
                             <span className="font-bold text-xs text-white">
                               {sys.name}
                             </span>
-                            {sys.mandatory && (
-                              <span className="text-[9px] bg-bradesco-950 text-bradesco-400 font-bold px-1.5 py-0.5 rounded border border-bradesco-800/40">
-                                Obrigatório
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {getMaxStage(activeSegment) > 1 && (
+                                <span className="text-[9px] bg-sky-950/60 text-sky-300 font-bold px-1.5 py-0.5 rounded border border-sky-800/40">
+                                  Etapa {getSystemStage(sys)}
+                                </span>
+                              )}
+                              {sys.mandatory && (
+                                <span className="text-[9px] bg-bradesco-950 text-bradesco-400 font-bold px-1.5 py-0.5 rounded border border-bradesco-800/40">
+                                  Obrigatório
+                                </span>
+                              )}
+                            </div>
                           </div>
                           {sys.description && (
                             <p className="text-[11px] text-dark-muted leading-relaxed">
@@ -595,6 +608,26 @@ export default function SegmentosPage() {
                   placeholder="Ex: Softphone Genesys para recebimento de chamadas e discador..."
                   className="w-full text-xs text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-dark-muted mb-1">
+                  Etapa de liberação
+                </label>
+                <select
+                  value={systemStage}
+                  onChange={(e) => setSystemStage(Number(e.target.value))}
+                  className="w-full text-xs font-medium text-white border border-dark-border rounded-xl p-2.5 focus:ring-2 focus:ring-bradesco-500 focus:outline-none bg-dark-input"
+                >
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <option key={n} value={n}>
+                      {n === 1 ? 'Etapa 1 — liberado desde o início' : `Etapa ${n} — liberado depois (etapa ${n - 1} concluída)`}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-dark-muted mt-1">
+                  Use para liberação gradual. Ex.: Etapa 1 = Login de Rede, Etapa 2 = Login M (cliente), Etapa 3 = demais sistemas. Cada turma só testa e reporta os sistemas das etapas já liberadas para ela.
+                </p>
               </div>
 
               <div className="flex items-center gap-2 pt-1">

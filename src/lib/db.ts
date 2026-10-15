@@ -3,6 +3,7 @@ import path from 'node:path';
 import { neon } from '@neondatabase/serverless';
 import { DatabaseSchema, Segment, ClassGroup, DailyReport, AppSettings, MigrationSlaRule, Chamado, PushSubscriptionRecord } from '@/types';
 import { todayStr } from './sla';
+import { getMaxStage, getReleasedStage } from './stages';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -485,6 +486,16 @@ export async function saveClass(classData: Omit<ClassGroup, 'createdAt' | 'updat
         id: classData.id,
         updatedAt: now,
       };
+      // Etapa de sistemas avançou pela edição → reabre a validação para testar
+      // os sistemas recém-liberados (mesma regra do botão "Liberar etapa").
+      {
+        const stageSegment = db.segments.find(sg => sg.id === updated.segmentId || sg.name === updated.segmentName);
+        const previousStage = getReleasedStage(db.classes[index], stageSegment);
+        if (getReleasedStage(updated, stageSegment) > previousStage) {
+          updated.systemsValidated = false;
+          updated.systemsValidationDate = undefined;
+        }
+      }
       db.classes[index] = updated;
 
       // Turma foi encerrada agora (não estava concluída antes) → as evidências
@@ -627,6 +638,34 @@ export async function updateSettings(settings: Partial<AppSettings>): Promise<Ap
   };
   await writeDb(db);
   return db.settings;
+}
+
+/**
+ * Define até qual etapa de sistemas a turma já teve liberação (ex.: 1 = só
+ * login de rede, 2 = + login M, 3 = + demais sistemas). Ao AVANÇAR de etapa,
+ * a validação de sistemas da turma é reaberta, para que os sistemas recém
+ * liberados sejam testados no próximo reporte.
+ */
+export async function setClassReleasedStage(classId: string, stage: number): Promise<ClassGroup | null> {
+  const db = await readDb();
+  const index = db.classes.findIndex(c => c.id === classId);
+  if (index === -1) return null;
+
+  const classGroup = db.classes[index];
+  const segment = db.segments.find(s => s.id === classGroup.segmentId || s.name === classGroup.segmentName);
+  const max = getMaxStage(segment);
+  const clamped = Math.min(Math.max(1, Math.floor(stage)), max);
+  const advanced = clamped > getReleasedStage(classGroup, segment);
+
+  const updated: ClassGroup = {
+    ...classGroup,
+    releasedStage: clamped,
+    ...(advanced ? { systemsValidated: false, systemsValidationDate: undefined } : {}),
+    updatedAt: new Date().toISOString(),
+  };
+  db.classes[index] = updated;
+  await writeDb(db);
+  return updated;
 }
 
 // ==================== MATRIZ DE MIGRAÇÃO (SLA Chamado + Treinamento) ====================

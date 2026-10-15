@@ -19,6 +19,7 @@ export interface SegmentSystem {
   name: string;             // ex: "Sistema GEO", "WDE (Workspace Desktop Edition)"
   description?: string;
   mandatory?: boolean;
+  releaseStage?: number;    // Etapa em que o sistema é liberado (1 = desde o início; 2, 3... = liberados depois)
 }
 
 export interface Segment {
@@ -54,6 +55,7 @@ export interface ClassGroup {
   students: Student[];
   systemsValidated?: boolean; // Se os sistemas de todos os operadores já foram testados e estão 100% OK
   systemsValidationDate?: string;
+  releasedStage?: number;     // Etapa de sistemas já liberada p/ a turma (vazio = todas as etapas liberadas)
   schedule?: ScheduleDay[];   // Cronograma dia-a-dia planejado para a turma
   createdAt: string;
   updatedAt: string;

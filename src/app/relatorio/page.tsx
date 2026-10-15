@@ -36,6 +36,7 @@ import {
 import AiAgentModal from '@/components/AiAgentModal';
 import { compressImageFile } from '@/lib/image-compress';
 import { todayStr } from '@/lib/sla';
+import { getReleasedSystems, getPendingSystems } from '@/lib/stages';
 
 export default function NovoRelatorioPage() {
   const router = useRouter();
@@ -116,6 +117,8 @@ export default function NovoRelatorioPage() {
 
   const selectedClass = classes.find(c => c.id === selectedClassId);
   const currentSegment = segments.find(s => s.id === selectedClass?.segmentId || s.name === selectedClass?.segmentName) || segments[0];
+  const releasedSystems = getReleasedSystems(selectedClass, currentSegment);
+  const pendingSystems = getPendingSystems(selectedClass, currentSegment);
 
   // Quando muda a turma selecionada, inicializa alunos e testes de sistemas
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function NovoRelatorioPage() {
     setPerformanceList(initialPerf);
 
     // Inicializa testes dos sistemas do segmento para cada operador
-    const systemsList = currentSegment?.systems || [];
+    const systemsList = getReleasedSystems(selectedClass, currentSegment);
     const initialOperatorChecks: OperatorSystemTestResult[] = selectedClass.students.map(s => ({
       studentId: s.id,
       studentName: s.name,
@@ -604,8 +607,13 @@ export default function NovoRelatorioPage() {
               2. Status dos Sistemas do Segmento ({currentSegment?.name})
             </h2>
             <p className="text-[11px] text-dark-muted">
-              Sistemas monitorados: {currentSegment?.systems.map(s => s.name).join(', ') || 'Nenhum'}
+              Sistemas monitorados: {releasedSystems.map(s => s.name).join(', ') || 'Nenhum'}
             </p>
+            {pendingSystems.length > 0 && (
+              <p className="text-[11px] text-sky-300 mt-0.5">
+                Ainda não liberados para esta turma (não são testados nem contam como falha): {pendingSystems.map(s => s.name).join(', ')}
+              </p>
+            )}
           </div>
 
           {selectedClass?.systemsValidated && !reportHasSystemIncident ? (
@@ -632,7 +640,7 @@ export default function NovoRelatorioPage() {
                   Sistemas dos Operadores já Homologados
                 </h3>
                 <p className="text-[11px] text-dark-muted leading-relaxed">
-                  Os sistemas do segmento <strong>{selectedClass.segmentName}</strong> ({currentSegment?.systems.map(s => s.name).join(', ')}) já foram validados para todos os operadores da turma e estão marcados como <strong>100% Operacionais</strong>. Não é necessário testar novamente no dia a dia.
+                  Os sistemas do segmento <strong>{selectedClass.segmentName}</strong> ({releasedSystems.map(s => s.name).join(', ')}) já foram validados para todos os operadores da turma e estão marcados como <strong>100% Operacionais</strong>. Não é necessário testar novamente no dia a dia.
                 </p>
               </div>
             </div>
@@ -788,7 +796,7 @@ export default function NovoRelatorioPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {(currentSegment?.systems || []).map(sys => {
+                {releasedSystems.map(sys => {
                   const active = selectedSystemTags.includes(sys.id);
                   return (
                     <button
