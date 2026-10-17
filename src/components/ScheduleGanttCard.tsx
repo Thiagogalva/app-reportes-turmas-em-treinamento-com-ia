@@ -116,8 +116,11 @@ export default function ScheduleGanttCard() {
 
               return (
                 <div key={c.id} className="flex items-center">
-                  <div className="w-[140px] flex-shrink-0 pr-2">
-                    <p className="text-[11px] font-bold text-white truncate" title={c.name}>{c.name}</p>
+                  <div className="w-[140px] flex-shrink-0 pr-2" title={`${c.name}\nCódigo: ${c.code}\nInstrutor: ${c.instructor}`}>
+                    <p className="text-[11px] font-bold text-white truncate flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: c.color || '#2a3441' }} />
+                      <span className="truncate">{c.name}</span>
+                    </p>
                     {deviation.alert && (
                       <p className="text-[9px] text-red-400 font-semibold">{deviation.maxDaysLate}d de atraso</p>
                     )}

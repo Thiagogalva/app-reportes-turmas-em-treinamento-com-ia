@@ -34,6 +34,7 @@ import { ClassGroup, DailyReport, AiGeneratedReport } from '@/types';
 import { exportReportsToExcel, exportSingleReportToPdf } from '@/lib/export-helpers';
 import AiAgentModal from '@/components/AiAgentModal';
 import SlaImpactCard from '@/components/SlaImpactCard';
+import ClassPicker from '@/components/ClassPicker';
 import ScheduleGanttCard from '@/components/ScheduleGanttCard';
 import ChamadosCard from '@/components/ChamadosCard';
 import AdherenceCard from '@/components/AdherenceCard';
@@ -98,6 +99,24 @@ export default function DashboardPage() {
   const selectedClass = useMemo(() => {
     return classes.find(c => c.id === selectedClassId);
   }, [classes, selectedClassId]);
+
+  const handleColorChange = async (classId: string, color: string | null) => {
+    // Atualiza na hora (otimista) e confirma/reverte conforme a resposta.
+    const previous = classes.find(c => c.id === classId)?.color;
+    setClasses(prev => prev.map(c => (c.id === classId ? { ...c, color: color ?? undefined } : c)));
+    try {
+      const res = await fetch(`/api/classes/${classId}/color`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ color }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error);
+    } catch {
+      setClasses(prev => prev.map(c => (c.id === classId ? { ...c, color: previous } : c)));
+      alert('Não foi possível salvar a cor da turma. Tente novamente.');
+    }
+  };
 
   // Cálculos de métricas da turma selecionada
   const kpis = useMemo(() => {
@@ -278,27 +297,6 @@ export default function DashboardPage() {
 
         {/* Seletor de Turmas e Ações Rápidas */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          {classes.length > 0 ? (
-            <div className="flex items-center gap-2 bg-dark-card p-1.5 rounded-xl border border-dark-border w-full sm:w-auto">
-              <span className="text-xs font-bold text-dark-muted px-2">Turma:</span>
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                className="bg-dark-bg text-xs font-bold text-white border border-dark-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-bradesco-500 flex-1 sm:flex-initial"
-              >
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <div className="text-xs text-amber-400 font-semibold bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-800/50">
-              Nenhuma turma em treinamento no momento.
-            </div>
-          )}
-
           <button
             onClick={() => exportReportsToExcel(reports, selectedClass)}
             disabled={reports.length === 0}
@@ -318,6 +316,16 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Seletor de turmas em cards (busca, cor personalizável e detalhes ao passar o mouse) */}
+      {classes.length > 0 && (
+        <ClassPicker
+          classes={classes}
+          selectedId={selectedClassId}
+          onSelect={setSelectedClassId}
+          onColorChange={handleColorChange}
+        />
+      )}
 
       {/* Caso não haja turma ativa cadastrada */}
       {classes.length === 0 && !loading && (

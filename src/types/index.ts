@@ -55,6 +55,7 @@ export interface ClassGroup {
   students: Student[];
   systemsValidated?: boolean; // Se os sistemas de todos os operadores já foram testados e estão 100% OK
   systemsValidationDate?: string;
+  color?: string;             // Cor de destaque do card da turma (hex, ex.: #3b82f6)
   releasedStage?: number;     // Etapa de sistemas já liberada p/ a turma (vazio = todas as etapas liberadas)
   schedule?: ScheduleDay[];   // Cronograma dia-a-dia planejado para a turma
   createdAt: string;

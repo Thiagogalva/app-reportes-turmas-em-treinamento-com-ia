@@ -6,6 +6,7 @@ import { ClipboardCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ClassGroup, DailyReport } from '@/types';
 import { evaluateClassAdherence } from '@/lib/adherence';
 import LoadingState from '@/components/LoadingState';
+import ClassBarTooltip from '@/components/ClassBarTooltip';
 
 function adherenceColor(percent: number): string {
   if (percent >= 90) return '#10b981'; // emerald-500
@@ -39,10 +40,17 @@ export default function AdherenceCard() {
   const pendingToday = results.filter(r => r.todayIsExpected && !r.reportedToday);
 
   const chartData = results
-    .map(r => ({
-      name: r.className.length > 16 ? r.className.slice(0, 16) + '…' : r.className,
-      aderencia: r.adherencePercent,
-    }))
+    .map(r => {
+      const cls = classes.find(c => c.id === r.classId);
+      return {
+        name: r.className.length > 16 ? r.className.slice(0, 16) + '…' : r.className,
+        fullName: r.className,
+        code: cls?.code,
+        instructor: cls?.instructor,
+        color: cls?.color,
+        aderencia: r.adherencePercent,
+      };
+    })
     .sort((a, b) => a.aderencia - b.aderencia);
 
   if (loading) {
@@ -79,11 +87,19 @@ export default function AdherenceCard() {
 
       {pendingToday.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {pendingToday.map(r => (
-            <span key={r.classId} className="text-[10px] font-semibold bg-red-950/30 border border-red-900/40 text-red-300 rounded-lg px-2 py-1">
-              {r.className}
-            </span>
-          ))}
+          {pendingToday.map(r => {
+            const cls = classes.find(c => c.id === r.classId);
+            return (
+              <span
+                key={r.classId}
+                title={cls ? `${r.className}\nCódigo: ${cls.code}\nInstrutor: ${cls.instructor}` : r.className}
+                className="text-[10px] font-semibold bg-red-950/30 border border-red-900/40 text-red-300 rounded-lg px-2 py-1 border-l-4"
+                style={cls?.color ? { borderLeftColor: cls.color } : undefined}
+              >
+                {r.className}
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -93,11 +109,7 @@ export default function AdherenceCard() {
             <CartesianGrid strokeDasharray="3 3" stroke="#2a3441" horizontal={false} />
             <XAxis type="number" domain={[0, 100]} tick={{ fill: '#8891a5', fontSize: 10 }} unit="%" />
             <YAxis type="category" dataKey="name" tick={{ fill: '#8891a5', fontSize: 10 }} width={100} />
-            <Tooltip
-              contentStyle={{ background: '#1a2332', border: '1px solid #2a3441', borderRadius: 8, fontSize: 11 }}
-              labelStyle={{ color: '#fff' }}
-              formatter={(value: number) => [`${value}%`, 'Aderência']}
-            />
+            <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ClassBarTooltip valueLabel="Aderência" unit="%" />} />
             <Bar dataKey="aderencia" radius={[0, 4, 4, 0]}>
               {chartData.map((d, idx) => (
                 <Cell key={idx} fill={adherenceColor(d.aderencia)} />

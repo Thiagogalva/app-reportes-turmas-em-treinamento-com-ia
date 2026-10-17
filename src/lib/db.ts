@@ -668,6 +668,18 @@ export async function setClassReleasedStage(classId: string, stage: number): Pro
   return updated;
 }
 
+/** Define (ou remove, com null) a cor de destaque do card da turma. */
+export async function setClassColor(classId: string, color: string | null): Promise<ClassGroup | null> {
+  const db = await readDb();
+  const index = db.classes.findIndex(c => c.id === classId);
+  if (index === -1) return null;
+  const { color: _old, ...rest } = db.classes[index];
+  const updated: ClassGroup = { ...rest, ...(color ? { color } : {}), updatedAt: new Date().toISOString() };
+  db.classes[index] = updated;
+  await writeDb(db);
+  return updated;
+}
+
 // ==================== MATRIZ DE MIGRAÇÃO (SLA Chamado + Treinamento) ====================
 export async function getMigrationRules(): Promise<MigrationSlaRule[]> {
   const db = await readDb();

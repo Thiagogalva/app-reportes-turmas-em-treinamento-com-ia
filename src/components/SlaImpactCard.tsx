@@ -7,6 +7,7 @@ import { AlertTriangle, Clock, CheckCircle2, Gauge } from 'lucide-react';
 import { ClassGroup, Segment } from '@/types';
 import { evaluateClassSlaImpact, formatDatePtBr } from '@/lib/sla';
 import LoadingState from '@/components/LoadingState';
+import ClassBarTooltip from '@/components/ClassBarTooltip';
 
 export default function SlaImpactCard() {
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -44,6 +45,10 @@ export default function SlaImpactCard() {
   const chartData = impacted
     .map(r => ({
       name: r.classGroup.name.length > 14 ? r.classGroup.name.slice(0, 14) + '…' : r.classGroup.name,
+      fullName: r.classGroup.name,
+      code: r.classGroup.code,
+      instructor: r.classGroup.instructor,
+      color: r.classGroup.color,
       dias: r.impact.daysOverdue || 0,
     }))
     .sort((a, b) => b.dias - a.dias)
@@ -90,10 +95,7 @@ export default function SlaImpactCard() {
               <CartesianGrid strokeDasharray="3 3" stroke="#2a3441" horizontal={false} />
               <XAxis type="number" tick={{ fill: '#8891a5', fontSize: 10 }} label={{ value: 'dias de atraso', position: 'insideBottom', offset: -2, fill: '#8891a5', fontSize: 10 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: '#8891a5', fontSize: 10 }} width={90} />
-              <Tooltip
-                contentStyle={{ background: '#1a2332', border: '1px solid #2a3441', borderRadius: 8, fontSize: 11 }}
-                labelStyle={{ color: '#fff' }}
-              />
+              <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ClassBarTooltip valueLabel="Dias de atraso" />} />
               <Bar dataKey="dias" radius={[0, 4, 4, 0]}>
                 {chartData.map((_, idx) => (
                   <Cell key={idx} fill="#e11d48" />
@@ -107,7 +109,12 @@ export default function SlaImpactCard() {
       {impacted.length > 0 && (
         <div className="space-y-1.5 pt-2 border-t border-dark-border">
           {impacted.slice(0, 6).map(({ classGroup, impact }) => (
-            <div key={classGroup.id} className="flex items-center justify-between text-xs bg-red-950/20 border border-red-900/40 rounded-lg px-3 py-2">
+            <div
+              key={classGroup.id}
+              title={`${classGroup.name}\nCódigo: ${classGroup.code}\nInstrutor: ${classGroup.instructor}`}
+              className="flex items-center justify-between text-xs bg-red-950/20 border border-red-900/40 rounded-lg px-3 py-2 border-l-4"
+              style={classGroup.color ? { borderLeftColor: classGroup.color } : undefined}
+            >
               <div className="flex items-center gap-2 min-w-0">
                 <Clock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
                 <span className="text-white font-bold truncate">{classGroup.name}</span>
